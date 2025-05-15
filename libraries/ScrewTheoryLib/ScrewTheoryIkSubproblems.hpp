@@ -272,6 +272,61 @@ private:
     const KDL::Rotation axisPow;
 };
 
+/**
+ * @ingroup ScrewTheoryLib
+ *
+ * @brief Sixth Pardos-Gotor subproblem
+ *
+ * Dual solution, double revolute joint geometric IK subproblem defined as:
+ * @f$ e^{\hat{\xi}_1 \theta_1} e^{\hat{\xi}_2 \theta_2} p = k @f$
+ * (two consecutive skew rotation screws applied to a point).
+ * This is a generic subproblem (PG6), generalizing PK2 and PG4.
+ *
+ * It handles the case of two skew axes, computes intermediate positions
+ * using a translational screw axis (intersection of planes), and solves
+ * two PK1 subproblems to get @f$ \theta_1 @f$ and @f$ \theta_2 @f$.
+ *
+ * See @cite pardosgotor2018str @cite pardosgotor2022str.
+ */
+class PardosGotorSix : public ScrewTheoryIkSubproblem
+{
+public:
+    using ScrewTheoryIkSubproblem::solve;
+
+    /**
+     * @brief Constructor
+     *
+     * @param exp1 First POE term (rotation screw).
+     * @param exp2 Second POE term (rotation screw).
+     * @param p Initial point.
+     * @param k Target point.
+     */
+    PardosGotorSix(const MatrixExponential & exp1, const MatrixExponential & exp2, const KDL::Vector & p);
+
+    bool solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const override;
+
+    int solutions() const override
+    { return 2; }
+
+    const char * describe() const override
+    { return "PG6"; }
+
+private:
+    const MatrixExponential exp1, exp2;
+    const KDL::Vector p, k;
+    const KDL::Rotation axisPow1, axisPow2;
+
+    static KDL::Vector computeR3(const KDL::Vector & o1, const KDL::Vector & o2,
+                                 const KDL::Vector & omega1, const KDL::Vector & omega2);
+
+    static std::array<double, 2> computeTheta3(const KDL::Vector & v3, const KDL::Vector & o,
+                                               const KDL::Vector & r3, double targetNorm);
+
+    static std::array<double, 2> solvePK1(const KDL::Vector & omega, const KDL::Vector & u,
+                                          const KDL::Vector & m, const KDL::Vector & n);
+};
+
+
 } // namespace roboticslab
 
 #endif // __SCREW_THEORY_IK_SUBPROBLEMS_HPP__
