@@ -1187,6 +1187,250 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
     checkSolutions(actual, expected);
 }
 
+
+TEST_F(ScrewTheoryTest, PardosGotorSix)
+{
+    KDL::Vector p(0, 1, 0);
+    KDL::Vector k(1, -1, 1);
+    KDL::Vector r(1, 0, 0);
+
+    MatrixExponential exp1(MatrixExponential::ROTATION, {1, 0, 0}, r);
+    MatrixExponential exp2(MatrixExponential::ROTATION, {0, 1, 0}, r);
+    PardosGotorSix pg6(exp1, exp2, p);
+
+    ASSERT_EQ(pg6.solutions(), 2);
+
+    KDL::Frame rhs(k - p);
+    ScrewTheoryIkSubproblem::Solutions actual;
+    ASSERT_TRUE(pg6.solve(rhs, KDL::Frame::Identity(), actual));
+
+    ASSERT_EQ(actual.size(), 2);
+    ASSERT_EQ(actual[0].size(), 2);
+    ASSERT_EQ(actual[1].size(), 2);
+
+    ScrewTheoryIkSubproblem::Solutions expected = {
+        {KDL::PI, -KDL::PI_2},
+        {KDL::PI_2, KDL::PI_2}
+    };
+
+std::cout << "Expected Solutions 1:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 1:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector k2 = k + KDL::Vector(1, 0, 0);
+    KDL::Frame rhs2(k2 - p);
+    ASSERT_FALSE(pg6.solve(rhs2, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {3 * KDL::PI_4, KDL::PI},
+        {3 * KDL::PI_4, KDL::PI}
+    };
+
+
+std::cout << "Expected Solutions 2:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 2:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector p3 = p + KDL::Vector(0.5, 0, 0);
+    PardosGotorSix pg6c(exp1, exp2, p3);
+    KDL::Frame rhs3(k2 - p3);
+    ASSERT_FALSE(pg6c.solve(rhs3, KDL::Frame::Identity(), actual));
+
+std::cout << "Expected Solutions 3:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 3:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector p4 = p + KDL::Vector(1, std::sqrt(2) - 1, 0);
+    PardosGotorSix pg6d(exp1, exp2, p4);
+    KDL::Frame rhs4(k - p4);
+    ASSERT_TRUE(pg6d.solve(rhs4, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {3 * KDL::PI_4, 0},
+        {3 * KDL::PI_4, 0}
+    };
+
+std::cout << "Expected Solutions 4:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 4:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+    checkSolutions(actual, expected);
+
+    expected = {
+        {3 * KDL::PI_4, KDL::PI},
+        {3 * KDL::PI_4, KDL::PI}
+    };
+
+    ASSERT_TRUE(pg6d.solve(rhs4, KDL::Frame::Identity(), expected[0], actual));
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector p5 = p + KDL::Vector(1, 0, 0);
+    PardosGotorSix pg6e(exp1, exp2, p5);
+    KDL::Frame rhs5(k - p5);
+    ASSERT_FALSE(pg6e.solve(rhs5, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {3 * KDL::PI_4, 0},
+        {3 * KDL::PI_4, 0}
+    };
+
+    checkSolutions(actual, expected);
+
+    expected = {
+        {3 * KDL::PI_4, KDL::PI},
+        {3 * KDL::PI_4, KDL::PI}
+    };
+
+    ASSERT_FALSE(pg6e.solve(rhs5, KDL::Frame::Identity(), expected[0], actual));
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector p6 = p + KDL::Vector(0, -1, 0);
+    KDL::Vector k6 = k + KDL::Vector(1, 1, -1);
+    PardosGotorSix pg6f(exp1, exp2, p6);
+    KDL::Frame rhs6(k6 - p6);
+    ASSERT_TRUE(pg6f.solve(rhs6, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, KDL::PI},
+        {0, KDL::PI}
+    };
+
+    checkSolutions(actual, expected);
+
+    expected = {
+        {KDL::PI, KDL::PI},
+        {KDL::PI, KDL::PI}
+    };
+
+    ASSERT_TRUE(pg6f.solve(rhs6, KDL::Frame::Identity(), expected[0], actual));
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector k7 = k + KDL::Vector(2, 1, -1);
+    KDL::Frame rhs7(k7 - p6);
+    ASSERT_FALSE(pg6f.solve(rhs7, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, KDL::PI},
+        {0, KDL::PI}
+    };
+
+    checkSolutions(actual, expected);
+
+    expected = {
+        {KDL::PI, KDL::PI},
+        {KDL::PI, KDL::PI}
+    };
+
+    ASSERT_FALSE(pg6f.solve(rhs7, KDL::Frame::Identity(), expected[0], actual));
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector p8 = r;
+    KDL::Vector k8 = r;
+    PardosGotorSix pg6g(exp1, exp2, p8);
+    KDL::Frame rhs8(k8 - p8);
+    ASSERT_TRUE(pg6g.solve(rhs8, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, 0},
+        {0, 0}
+    };
+
+    checkSolutions(actual, expected);
+
+    expected = {
+        {KDL::PI, KDL::PI},
+        {KDL::PI, KDL::PI}
+    };
+
+    ASSERT_TRUE(pg6g.solve(rhs8, KDL::Frame::Identity(), expected[0], actual));
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector p9 = p + KDL::Vector(1, 0, 0);
+    KDL::Vector k9 = k + KDL::Vector(1, 1, -1);
+    PardosGotorSix pg6h(exp1, exp2, p9);
+    KDL::Frame rhs9(k9 - p9);
+    ASSERT_FALSE(pg6h.solve(rhs9, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, 0},
+        {0, 0}
+    };
+
+    checkSolutions(actual, expected);
+
+    expected = {
+        {KDL::PI, KDL::PI},
+        {KDL::PI, KDL::PI}
+    };
+
+    ASSERT_FALSE(pg6h.solve(rhs9, KDL::Frame::Identity(), expected[0], actual));
+
+    checkSolutions(actual, expected);
+
+/*
+    KDL::Vector p(1, 0, 0);
+    KDL::Vector k(0, sqrt(2)-1, 0);
+
+    MatrixExponential exp1(MatrixExponential::ROTATION, {1, 0, 0}, {0,0,0});
+    MatrixExponential exp2(MatrixExponential::ROTATION, {0, 1, 0}, {0,0,1});
+    PardosGotorSix pg6(exp1, exp2, p);
+
+    ASSERT_EQ(pg6.solutions(), 2);
+
+    KDL::Frame rhs(k - p);
+    ScrewTheoryIkSubproblem::Solutions actual;
+    ASSERT_TRUE(pg6.solve(rhs, KDL::Frame::Identity(), actual));
+
+    ASSERT_EQ(actual.size(), 2);
+    ASSERT_EQ(actual[0].size(), 2);
+    ASSERT_EQ(actual[1].size(), 2);
+
+    ScrewTheoryIkSubproblem::Solutions expected = {
+        {KDL::PI_2, KDL::PI_4},
+        {KDL::PI_2, KDL::PI_4}
+    };
+
+    checkSolutions(actual, expected);
+*/
+
+}
+
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)
 {
     KDL::Chain chain = makeAbbIrb120KinematicsFromDH();

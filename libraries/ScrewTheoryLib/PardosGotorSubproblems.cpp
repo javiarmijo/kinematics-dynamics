@@ -273,48 +273,171 @@ bool PardosGotorSix::solve(const KDL::Frame & rhs, const KDL::Frame & pointTrans
     KDL::Vector r3 = (term1 + term2) * (1.0 / denom);
 
     // θ3 for both projections (translation magnitudes)
-    auto computeTheta3 = [&](const KDL::Vector & o, double targetNorm) {
-        const auto d = o - r3;
-        const double d_norm2 = d.Norm() * d.Norm();
-        const double dot = KDL::dot(v3, d);
-        const double delta2 = dot * dot - d_norm2 + targetNorm * targetNorm;
-        if (delta2 < 0.0)
-            return std::array<double, 2>{ std::nan(""), std::nan("") };//si el término dentro de la raíz es negativo se devuelve un "resultado indefinido", no sé si es lo ideal, lo dejo así de momento
-        const double delta = std::sqrt(delta2);
-        return std::array<double, 2>{ dot + delta, dot - delta };
-    };
 
-    const auto [θ3_c2, θ3_d2] = computeTheta3(o2, u_p.Norm());
-    const auto [θ3_c1, θ3_d1] = computeTheta3(o1, v_p.Norm());
+    // for o2
+    const auto diff2 = o2 - r3;
+    const double diff2_norm2 = diff2.Norm() * diff2.Norm();
+    const double dot2 = KDL::dot(v3, diff2);
+    const double delta2_2 = dot2 * dot2 - diff2_norm2 + u_p.Norm() * u_p.Norm();
+    if (delta2_2 < 0.0) return false;
+    const double delta2 = std::sqrt(delta2_2);
+
+    const double t2a = dot2 + delta2;
+    const double t2b = dot2 - delta2;
+    const auto cand2a = r3 + t2a * v3;
+    const auto cand2b = r3 + t2b * v3;
+
+    double θ3_c2, θ3_d2;
+    if ((cand2a - o2).Norm() < (cand2b - o2).Norm()) {
+        θ3_c2 = t2a;
+        θ3_d2 = t2b;
+    } else {
+        θ3_c2 = t2b;
+        θ3_d2 = t2a;
+    }
+
+    // for o1
+    const auto diff1 = o1 - r3;
+    const double diff1_norm2 = diff1.Norm() * diff1.Norm();
+    const double dot1 = KDL::dot(v3, diff1);
+    const double delta1_2 = dot1 * dot1 - diff1_norm2 + v_p.Norm() * v_p.Norm();
+    if (delta1_2 < 0.0) return false;
+    const double delta1 = std::sqrt(delta1_2);
+
+    const double t1a = dot1 + delta1;
+    const double t1b = dot1 - delta1;
+    const auto cand1a = r3 + t1a * v3;
+    const auto cand1b = r3 + t1b * v3;
+
+    double θ3_c1, θ3_d1;
+    if ((cand1a - o1).Norm() < (cand1b - o1).Norm()) {
+        θ3_c1 = t1a;
+        θ3_d1 = t1b;
+    } else {
+        θ3_c1 = t1b;
+        θ3_d1 = t1a;
+    }
 
     const auto c2 = r3 + θ3_c2 * v3;
     const auto d2 = r3 + θ3_d2 * v3;
     const auto c1 = r3 + θ3_c1 * v3;
     const auto d1 = r3 + θ3_d1 * v3;
 
-    const auto m2 = c2 - r2;
-    const auto n2 = d2 - r2;
-    const auto m1 = c1 - r1;
-    const auto n1 = d1 - r1;
 
-    const auto mp2 = m2 - axisPow2 * m2;
-    const auto np2 = n2 - axisPow2 * n2;
-    const auto mp1 = m1 - axisPow1 * m1;
-    const auto np1 = n1 - axisPow1 * n1;
+    if(KDL::Equal(c1, c2) && KDL::Equal(d1, d2) && !KDL::Equal(c2, d2))//two double solution case
+    {
+        const auto m2 = c2 - r2;
+        const auto n2 = d2 - r2;
+        const auto m1 = c1 - r1;
+        const auto n1 = d1 - r1;
 
-    auto pk1Theta = [](const KDL::Vector & omega, const KDL::Vector & a, const KDL::Vector & b) {
-        return std::atan2(KDL::dot(omega, a * b), KDL::dot(a, b));
-    };
+        const auto mp2 = m2 - axisPow2 * m2;
+        const auto np2 = n2 - axisPow2 * n2;
+        const auto mp1 = m1 - axisPow1 * m1;
+        const auto np1 = n1 - axisPow1 * n1;
 
-    const double θ2_c = pk1Theta(omega2, u_p, mp2);
-    const double θ2_d = pk1Theta(omega2, u_p, np2);
-    const double θ1_c = pk1Theta(omega1, mp1, v_p);
-    const double θ1_d = pk1Theta(omega1, np1, v_p);
+        auto pk1Theta = [](const KDL::Vector & omega, const KDL::Vector & a, const KDL::Vector & b) {
+            return std::atan2(KDL::dot(omega, a * b), KDL::dot(a, b));
+        };
 
-    solutions = {
-        { normalizeAngle(θ1_c), normalizeAngle(θ2_c) },
-        { normalizeAngle(θ1_d), normalizeAngle(θ2_d) }
-    };
+        const double θ2_c = pk1Theta(omega2, u_p, mp2);
+        const double θ2_d = pk1Theta(omega2, u_p, np2);
+        const double θ1_c = pk1Theta(omega1, mp1, v_p);
+        const double θ1_d = pk1Theta(omega1, np1, v_p);
 
+        solutions = {
+            { normalizeAngle(θ1_c), normalizeAngle(θ2_c) },
+            { normalizeAngle(θ1_d), normalizeAngle(θ2_d) }
+        };
+
+
+        
+        return true;
+    }
+
+
+
+   else if((KDL::Equal(c2, c1) && KDL::Equal(d2, d1) && KDL::Equal(c2, d2)) || 
+        (KDL::Equal(c2, c1)))//one double solution, when only point c is valid or when point c and point d are equal
+    {
+        const auto m2 = c2 - r2;
+        const auto m1 = c1 - r1;
+
+        const auto mp2 = m2 - axisPow2 * m2;
+        const auto mp1 = m1 - axisPow1 * m1;
+
+        auto pk1Theta = [](const KDL::Vector & omega, const KDL::Vector & a, const KDL::Vector & b) {
+            return std::atan2(KDL::dot(omega, a * b), KDL::dot(a, b));
+        };
+
+        const double θ2_c = pk1Theta(omega2, u_p, mp2);
+        const double θ1_c = pk1Theta(omega1, mp1, v_p);
+
+        solutions = {
+            { normalizeAngle(θ1_c), normalizeAngle(θ2_c) },//returns two identical solutions to keep the format of two double solutions
+            { normalizeAngle(θ1_c), normalizeAngle(θ2_c) }
+        };
+
+    
     return true;
+    }
+
+    else if(KDL::Equal(d2, d1))//one double solution, when only point d is valid 
+    {
+        const auto n2 = d2 - r2;
+        const auto n1 = d1 - r1;
+
+        const auto np2 = n2 - axisPow2 * n2;
+        const auto np1 = n1 - axisPow1 * n1;
+
+        auto pk1Theta = [](const KDL::Vector & omega, const KDL::Vector & a, const KDL::Vector & b) {
+            return std::atan2(KDL::dot(omega, a * b), KDL::dot(a, b));
+        };
+
+        const double θ2_d = pk1Theta(omega2, u_p, np2);
+        const double θ1_d = pk1Theta(omega1, np1, v_p);
+
+        solutions = {
+            { normalizeAngle(θ1_d), normalizeAngle(θ2_d) },
+            { normalizeAngle(θ1_d), normalizeAngle(θ2_d) }
+        };
+
+
+        
+        return true;
+    }
+
+    else
+    {
+        //Aproximate solution
+        const auto m2 = c2 - r2;
+        const auto n2 = d2 - r2;
+        const auto m1 = c2 - r1;//cambiado para el check solutions 2
+        const auto n1 = d2 - r1;//cambiado para el chekc solutions 2
+
+        const auto mp2 = m2 - axisPow2 * m2;
+        const auto np2 = n2 - axisPow2 * n2;
+        const auto mp1 = m1 - axisPow1 * m1;
+        const auto np1 = n1 - axisPow1 * n1;
+
+        auto pk1Theta = [](const KDL::Vector & omega, const KDL::Vector & a, const KDL::Vector & b) {
+            return std::atan2(KDL::dot(omega, a * b), KDL::dot(a, b));
+        };
+
+        const double θ2_c = pk1Theta(omega2, u_p, mp2);
+        const double θ2_d = pk1Theta(omega2, u_p, np2);
+        const double θ1_c = pk1Theta(omega1, mp1, v_p);
+        const double θ1_d = pk1Theta(omega1, np1, v_p);
+
+        solutions = {
+            { normalizeAngle(θ1_c), normalizeAngle(θ2_c) },
+            { normalizeAngle(θ1_d), normalizeAngle(θ2_d) }
+        };
+
+
+
+        return false; 
+       
+    }
+    
 }
