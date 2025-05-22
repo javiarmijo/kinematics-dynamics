@@ -1294,6 +1294,17 @@ for (const auto &sol : actual) {
 
     ASSERT_TRUE(pg6d.solve(rhs4, KDL::Frame::Identity(), expected[0], actual));
 
+std::cout << "Expected Solutions 5:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 5:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+
     checkSolutions(actual, expected);
 
     KDL::Vector p5 = p + KDL::Vector(1, 0, 0);
@@ -1306,6 +1317,17 @@ for (const auto &sol : actual) {
         {3 * KDL::PI_4, 0}
     };
 
+std::cout << "Expected Solutions 6:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 6:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+
     checkSolutions(actual, expected);
 
     expected = {
@@ -1314,6 +1336,17 @@ for (const auto &sol : actual) {
     };
 
     ASSERT_FALSE(pg6e.solve(rhs5, KDL::Frame::Identity(), expected[0], actual));
+
+std::cout << "Expected Solutions 7:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 7:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
 
     checkSolutions(actual, expected);
 
@@ -1328,6 +1361,17 @@ for (const auto &sol : actual) {
         {0, KDL::PI}
     };
 
+
+std::cout << "Expected Solutions 8:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 8:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
     checkSolutions(actual, expected);
 
     expected = {
@@ -1336,6 +1380,17 @@ for (const auto &sol : actual) {
     };
 
     ASSERT_TRUE(pg6f.solve(rhs6, KDL::Frame::Identity(), expected[0], actual));
+
+
+std::cout << "Expected Solutions 9:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 9:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
 
     checkSolutions(actual, expected);
 
@@ -1347,6 +1402,17 @@ for (const auto &sol : actual) {
         {0, KDL::PI},
         {0, KDL::PI}
     };
+
+    std::cout << "Expected Solutions 10:\n";
+for (const auto &sol : expected) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
+std::cout << "Actual Solutions 10:\n";
+for (const auto &sol : actual) {
+    std::cout << "θ1 = " << sol[0] << ", θ2 = " << sol[1] << "\n";
+}
+
 
     checkSolutions(actual, expected);
 
