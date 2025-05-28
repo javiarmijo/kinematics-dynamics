@@ -4,6 +4,8 @@
 
 #include "ScrewTheoryTools.hpp"
 
+#include <algorithm>
+
 using namespace roboticslab;
 
 // -----------------------------------------------------------------------------
@@ -229,3 +231,69 @@ bool PardosGotorFour::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
 }
 
 // -----------------------------------------------------------------------------
+
+PardosGotorFive::PardosGotorFive(const MatrixExponential & _exp, const MatrixExponential & _exp_next , const KDL::Vector & _p)
+    : exp(_exp),
+      exp_next(_exp_next),//exp_new added
+      p(_p),
+      axisPow(vectorPow2(exp.getAxis()))
+{}
+
+// -----------------------------------------------------------------------------
+
+bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const
+{
+    KDL::Vector f = pointTransform * p;
+    KDL::Vector k = rhs * p;
+
+    KDL::Vector u = f - exp.getOrigin();
+    KDL::Vector v = k - exp.getOrigin();
+
+    KDL::Vector u_w = axisPow * u;
+    KDL::Vector v_w = axisPow * v;
+
+    KDL::Vector u_p = u - u_w;
+    KDL::Vector v_p = v - v_w;
+
+    double theta_k = reference[0];
+    double theta_d = reference[0];//creo que será así y no [1]
+
+    if (!KDL::Equal(u_p.Norm(), 0.0) && !KDL::Equal(v_p.Norm(), 0.0))
+    {
+        theta_k = std::atan2(KDL::dot(exp.getAxis(), u_p * v_p), KDL::dot(u_p, v_p));
+        theta_d= theta_k - KDL::PI;
+
+        //Ajuste PG5
+
+        //Creamos un vector que solo contenga las coordenadas de p en el eje de la rotación anterior al eje que estamos simplificando
+
+        KDL::Vector adjust = KDL::Vector(
+            exp_next.getAxis().x() * f.x(),
+            exp_next.getAxis().y() * f.y(),
+            exp_next.getAxis().z() * f.z()
+        );
+
+
+        if(!KDL::Equal((adjust - exp.getOrigin()).Norm(), 0.0))//si no son iguales es que el punto carácterístico está desplazado en el eje de la sigueinte rotación, por lo que habrá que realizar el ajuste
+        {
+            double d=adjust.Norm();//es la distancia que estará desplazado el plano con respecto al plano de movimiento
+
+            //Recalcula los ángulso con el ajuste
+
+            double sin1 = std::clamp(d / v_p.Norm(), -1.0, 1.0);//acota el valor entre -1 y 1
+            double sin2 = std::clamp(d / u_p.Norm(), -1.0, 1.0);
+
+            theta_k = theta_k - std::asin(sin1) + std::asin(sin2);
+            theta_d = theta_d + std::asin(sin1) + std::asin(sin2);
+
+        }
+        
+    }
+
+    solutions = {
+        {normalizeAngle(theta_k)},
+        {normalizeAngle(theta_d)}
+    };
+
+    return KDL::Equal(u_w, v_w); //&& KDL::Equal(u_p.Norm(), v_p.Norm()) borrado
+}

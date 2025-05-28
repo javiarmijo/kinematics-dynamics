@@ -404,8 +404,17 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
             if (lastExp.getMotionType() == MatrixExponential::ROTATION
                     && !liesOnAxis(lastExp, testPoints[0]))
             {
-                poeTerms[lastExpId].known = true;
-                return {{lastExpId}, new PadenKahanOne(lastExp, testPoints[0])};
+                if(poeTerms[lastExpId+1].simplified == true)//PK1 can not be used if we do not know the previous term, so we used PG5 if that term is simplified
+                {
+                    poeTerms[lastExpId].known = true;
+                    const MatrixExponential & nextToLastExp = poe.exponentialAtJoint(lastExpId+1); //siguinte eje al simplifcado para comprobar si será necesario realizar ajuste
+                    return {{lastExpId}, new PardosGotorFive(lastExp, nextToLastExp, testPoints[0])};
+                }
+                else //si es conocido
+                {
+                    poeTerms[lastExpId].known = true;
+                    return {{lastExpId}, new PadenKahanOne(lastExp, testPoints[0])};                    
+                }
             }
 
             if (lastExp.getMotionType() == MatrixExponential::TRANSLATION)
@@ -505,6 +514,12 @@ void ScrewTheoryIkProblemBuilder::simplify(int depth)
             {
                 simplifyWithPardosOne();
                 break;
+            }
+            // try to simplify for cases of rotations that do not change the plane in which a point moves, allowing to apply PG5
+            else if (poe.exponentialAtJoint(i).getMotionType() == MatrixExponential::ROTATION)
+            {
+                simplifyWithPardosFive();
+                break;                
             }
         }
     }
@@ -637,3 +652,84 @@ void ScrewTheoryIkProblemBuilder::simplifyWithPardosOne()
 }
 
 // -----------------------------------------------------------------------------
+
+//Simplification for using PG5
+
+void ScrewTheoryIkProblemBuilder::simplifyWithPardosFive()
+{
+    // Pick first leftmost and rightmost unknown PoE terms.
+    auto itUnknown = std::find_if(poeTerms.begin(), poeTerms.end(), unknownNotSimplifiedTerm);
+    auto ritUnknown = std::find_if(poeTerms.rbegin(), poeTerms.rend(), unknownNotSimplifiedTerm);
+
+    int idStart = std::distance(poeTerms.begin(), itUnknown);
+    int idEnd = std::distance(ritUnknown, poeTerms.rend()) - 1;
+
+    if (idStart >= idEnd)
+    {
+        // Same term or something went wrong (all terms have been already simplified).
+        return;
+    }
+
+    const MatrixExponential & firstExp = poe.exponentialAtJoint(idStart);
+    const MatrixExponential & lastExp = poe.exponentialAtJoint(idEnd);
+
+    if (firstExp.getMotionType() == MatrixExponential::ROTATION)
+    {
+        // Advance from the leftmost PoE term.
+        for (int i = idEnd - 1; i >= idStart; i--)
+        {
+            const MatrixExponential & nextExp = poe.exponentialAtJoint(i + 1);
+
+            // Compare two consecutive PoE terms.
+            if (i != idStart)
+            {
+                const MatrixExponential & currentExp = poe.exponentialAtJoint(i);
+
+                if (planarMovement(currentExp, nextExp))
+                {
+                    // Might be ultimately simplified, let's find out in the next iterations.
+                    continue;
+                }
+            }
+            else if (normalPlaneMovement(firstExp, nextExp))
+            {
+                // Can simplify everything to the *right* of this PoE term.
+                for (int j = idStart + 1; j <= idEnd; j++)
+                {
+                    poeTerms[j].simplified = true;
+                }
+            }
+
+            break;
+        }
+    }
+    else if (lastExp.getMotionType() == MatrixExponential::ROTATION)
+    {
+        // Advance from the rightmost PoE term.
+        for (int i = idStart + 1; i <= idEnd; i++)
+        {
+            const MatrixExponential & prevExp = poe.exponentialAtJoint(i - 1);
+
+            if (i != idEnd)
+            {
+                const MatrixExponential & currentExp = poe.exponentialAtJoint(i);
+
+                if (planarMovement(prevExp, currentExp))
+                {
+                    continue;
+                }
+            }
+            else if (normalPlaneMovement(prevExp, lastExp))
+            {
+                // Can simplify everything to the *left* of this PoE term.
+                for (int j = idEnd - 1; j >= idStart; j--)
+                {
+                    poeTerms[j].simplified = true;
+                }
+            }
+
+            break;
+        }
+    }
+}
+

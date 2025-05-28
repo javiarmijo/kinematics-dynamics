@@ -273,6 +273,62 @@ public:
         return poe;
     }
 
+    /*
+    static KDL::Chain makeUR16eFromDh()//copiado tal cual de la implementación del grupo de investigación
+    {
+        const KDL::Joint rotZ(KDL::Joint::RotZ);
+        KDL::Chain chain;
+
+        chain.addSegment(KDL::Segment(KDL::Joint(KDL::Joint::None), KDL::Frame(KDL::Rotation::RotZ(0))));
+
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, -KDL::PI_2, 0.089159, 0)));//a,alpha,d,tetha (d y tetha para cambios de x)
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(-0.425, 0.0, 0.0, -KDL::PI_2)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(-0.39225, KDL::PI_2, 0.0, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, -KDL::PI_2, 0.10915, -KDL::PI_2)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.09465, KDL::PI_2, 0.0, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, 0.0, 0.0823, -KDL::PI_2)));
+
+        chain.addSegment(KDL::Segment(KDL::Joint(KDL::Joint::None), KDL::Frame(KDL::Rotation::RotZ(0))));
+
+        return chain;
+    }
+    */
+
+        static KDL::Chain makeUR16eFromDh()//la mía
+    {
+        const KDL::Joint rotZ(KDL::Joint::RotZ);
+        KDL::Chain chain;
+
+        chain.addSegment(KDL::Segment(KDL::Joint(KDL::Joint::None), KDL::Frame(KDL::Rotation::RotZ(0))));
+
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, -KDL::PI_2, 0.181, 0)));//a,alpha,d,tetha (d y tetha para cambios de x)
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.478, 0, 0.0, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.36, 0,0.174, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, -KDL::PI_2, 0.0, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, KDL::PI_2, -0.12, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, 0, 0.19, KDL::PI)));
+
+        chain.addSegment(KDL::Segment(KDL::Joint(KDL::Joint::None), KDL::Frame(KDL::Rotation::RotZ(0))));
+
+        return chain;
+    }
+
+    static PoeExpression makeUR16eFromPoE()
+    {
+        KDL::Frame H_S_T(KDL::Rotation::RotX(-KDL::PI_2) * KDL::Rotation::RotZ(KDL::PI), {0.838, 0.364, 0.061});
+        PoeExpression poe(H_S_T);
+
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  0, 1}, {    0,     0, 0.181}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  1, 0}, {    0,     0, 0.181}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  1, 0}, {0.478,     0, 0.181}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  1, 0}, {0.838, 0.174, 0.181}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  0,-1}, {0.838, 0.174, 0.061}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  1, 0}, {0.838, 0.174, 0.061}));
+
+        return poe;
+    }
+
+
     static void checkSolutions(const ScrewTheoryIkSubproblem::Solutions & actual, const ScrewTheoryIkSubproblem::Solutions & expected)
     {
         ASSERT_EQ(actual.size(), expected.size());
@@ -1225,6 +1281,14 @@ TEST_F(ScrewTheoryTest, AbbIrb6620lxKinematics)
     PoeExpression poe = makeAbbIrb6620lxFromPoE();
 
     checkRobotKinematics(chain, poe, 4);
+}
+
+TEST_F(ScrewTheoryTest, UR16eKinematics)
+{
+    KDL::Chain chain = makeUR16eFromDh();
+    PoeExpression poe = makeUR16eFromPoE();
+
+    checkRobotKinematics(chain, poe, 8);
 }
 
 TEST_F(ScrewTheoryTest, TeoRightArmKinematics)
