@@ -231,7 +231,7 @@ private:
     void simplifyWithPadenKahanOne(const KDL::Vector & point);
     void simplifyWithPadenKahanThree(const KDL::Vector & point);
     void simplifyWithPardosOne();
-    void simplifyWithPardosFive();
+    bool simplifyWithPardosFive();
 
     ScrewTheoryIkProblem::JointIdsToSubproblem trySolve(int depth);
 
