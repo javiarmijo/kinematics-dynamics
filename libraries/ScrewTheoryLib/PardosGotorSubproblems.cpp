@@ -6,6 +6,8 @@
 
 #include <algorithm>
 
+#include <iostream>
+
 using namespace roboticslab;
 
 // -----------------------------------------------------------------------------
@@ -263,6 +265,8 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         theta_k = std::atan2(KDL::dot(exp.getAxis(), u_p * v_p), KDL::dot(u_p, v_p));
         theta_d= theta_k - KDL::PI;
 
+        std::cout<<"sol: " << theta_k <<", " << theta_d <<"\n";
+
         //Ajuste PG5
 
         //Creamos un vector que solo contenga las coordenadas de p en el eje de la rotación anterior al eje que estamos simplificando
@@ -276,6 +280,7 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
 
         if(!KDL::Equal((adjust - exp.getOrigin()).Norm(), 0.0))//si no son iguales es que el punto carácterístico está desplazado en el eje de la sigueinte rotación, por lo que habrá que realizar el ajuste
         {
+            std::cout<<"hace ajuste\n";
             double d=adjust.Norm();//es la distancia que estará desplazado el plano con respecto al plano de movimiento
 
             //Recalcula los ángulso con el ajuste
@@ -289,6 +294,8 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         }
         
     }
+
+    std::cout<<"sol: " << theta_k <<", " << theta_d <<"\n";
 
     solutions = {
         {normalizeAngle(theta_k)},

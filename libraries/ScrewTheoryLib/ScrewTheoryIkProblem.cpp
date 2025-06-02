@@ -5,6 +5,8 @@
 #include <numeric> // std::accumulate
 #include <vector>
 
+#include <iostream>
+
 #include "ScrewTheoryTools.hpp"
 
 using namespace roboticslab;

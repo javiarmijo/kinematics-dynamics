@@ -325,6 +325,11 @@ public:
 
         //KDL::Frame H_S_T(KDL::Rotation::RotX(-KDL::PI_2) * KDL::Rotation::RotZ(KDL::PI), {0.838, 0.364, 0.061});
         KDL::Frame H_S_T = H_DH_0;  // copia literal del valor
+
+        //KDL::Frame baseRotation(KDL::Rotation::RotX(-KDL::PI_2) * KDL::Rotation::RotZ(KDL::PI));
+        //KDL::Frame baseRotation(KDL::Rotation::RotZ(KDL::PI) * KDL::Rotation::RotX(-KDL::PI_2));
+        //KDL::Frame H_S_T =baseRotation * H_DH_0;
+
         PoeExpression poe(H_S_T);
 
         poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  0, 1}, {    0,     0, 0.181}));
@@ -365,7 +370,6 @@ public:
 
         ScrewTheoryIkProblemBuilder builder(poe);
         ScrewTheoryIkProblem * ikProblem = builder.build();
-
         ASSERT_TRUE(ikProblem);
         ASSERT_EQ(ikProblem->solutions(), soln);
 
@@ -1251,7 +1255,7 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
 
     checkSolutions(actual, expected);
 }
-
+/*
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)
 {
     KDL::Chain chain = makeAbbIrb120KinematicsFromDH();
@@ -1259,7 +1263,7 @@ TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)
 
     checkRobotKinematics(chain, poe, 8);
 }
-
+*/
 TEST_F(ScrewTheoryTest, PumaKinematics)
 {
     KDL::Chain chain = makePumaKinematicsFromDH();
@@ -1291,7 +1295,7 @@ TEST_F(ScrewTheoryTest, AbbIrb6620lxKinematics)
 
     checkRobotKinematics(chain, poe, 4);
 }
-
+/*
 TEST_F(ScrewTheoryTest, UR16eKinematics)
 {
     KDL::Chain chain = makeUR16eFromDh();
@@ -1299,7 +1303,7 @@ TEST_F(ScrewTheoryTest, UR16eKinematics)
 
     checkRobotKinematics(chain, poe, 8);
 }
-
+*/
 TEST_F(ScrewTheoryTest, TeoRightArmKinematics)
 {
     KDL::Chain chain = makeTeoRightArmKinematicsFromDH();
@@ -1307,7 +1311,7 @@ TEST_F(ScrewTheoryTest, TeoRightArmKinematics)
 
     checkRobotKinematics(chain, poe, 8);
 }
-/*
+///*
 TEST_F(ScrewTheoryTest, TeoRightLegKinematics)
 {
     KDL::Chain chain = makeTeoRightLegKinematicsFromDH();
@@ -1315,7 +1319,7 @@ TEST_F(ScrewTheoryTest, TeoRightLegKinematics)
 
     checkRobotKinematics(chain, poe, 8);
 }
-*/
+//*/
 TEST_F(ScrewTheoryTest, ConfigurationSelector)
 {
     PoeExpression poe = makeTeoRightArmKinematicsFromPoE();

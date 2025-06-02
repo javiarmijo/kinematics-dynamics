@@ -65,11 +65,7 @@ namespace
 
     inline bool samePlane(const MatrixExponential & exp1, const MatrixExponential & exp2)
     {
-        //bool bothRotations = exp1.getMotionType() == MatrixExponential::ROTATION && exp2.getMotionType() == MatrixExponential::ROTATION;
-        std::cout <<"first axis: ("<< exp1.getAxis().x() << ", " <<  exp1.getAxis().y() << ", " <<  exp1.getAxis().z() <<")   ";
-        std::cout <<"second axis: ("<< exp2.getAxis().x() << ", " <<  exp2.getAxis().y() << ", " <<  exp2.getAxis().z() <<")\n";
         bool pointsOnPlane = KDL::Equal(KDL::dot((exp2.getOrigin() - exp1.getOrigin()), exp1.getAxis()),0);
-        //std::cout << "resta: (" << exp2.getOrigin().x() - exp1.getOrigin().x() << ", " << exp2.getOrigin().y() - exp1.getOrigin().y() << ", " << exp2.getOrigin().z() - exp1.getOrigin().z() << ")\n";
         return parallelAxes(exp1,exp2);// && pointsOnPlane;// && pointsOnPlane borrado
     }
 
@@ -308,11 +304,14 @@ ScrewTheoryIkProblem::Steps ScrewTheoryIkProblemBuilder::searchSolutions()
 
         // For the current set of characteristic points, try to simplify the PoE.
         simplify(depth);
-        std::cout<<"simplificado\n";
+            int knownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), knownTerm);
+            std::cout<<" TERMINOS CONOCIDOS: " << knownsCount << "\n";       
         // Find a solution if available.
         if (auto [ids, subproblem] = trySolve(depth); subproblem != nullptr)
         {
-            std::cout<<"solución encontrada    " << subproblem->describe() << "\n";
+            int unknownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), unknownTerm);
+            int knownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), knownTerm);
+            std::cout<<"solución encontrada    " << subproblem->describe() <<" términos desconocidos: " << unknownsCount <<" términos conocidos: " << knownsCount << "\n";
             // Solution found, reset and start again. We'll iterate over the same points, taking
             // into account that some terms are already known.
             steps.emplace_back(ids, subproblem);
@@ -350,7 +349,6 @@ ScrewTheoryIkProblem::Steps ScrewTheoryIkProblemBuilder::searchSolutions()
     }
     // Stop if we can't test more points or all terms are known (solution found).
     while (depth < MAX_SIMPLIFICATION_DEPTH && std::count_if(poeTerms.begin(), poeTerms.end(), unknownTerm) != 0);
-
     return steps;
 }
 
@@ -396,7 +394,7 @@ void ScrewTheoryIkProblemBuilder::refreshSimplificationState()
 ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve(int depth)
 {
     int unknownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), unknownNotSimplifiedTerm);
-
+    int knownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), knownTerm);
     if (unknownsCount == 0 || unknownsCount > 2) // TODO: hardcoded
     {
         // Can't solve yet, too many unknowns or oversimplified.
@@ -416,12 +414,15 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
             if (lastExp.getMotionType() == MatrixExponential::ROTATION
                     && !liesOnAxis(lastExp, testPoints[0]))
             {
-                if(lastExpId + 1 < poeTerms.size() && poeTerms[lastExpId+1].known == false)//PK1 can not be used if we do not know the previous term, so we used PG5 if that term is simplified
-                {
-                    poeTerms[lastExpId].known = true;
-                    std::cout << "eje conocido: (" << lastExp.getAxis().x() <<", " << lastExp.getAxis().y() <<", " << lastExp.getAxis().z() <<")\n ";
-                    const MatrixExponential & nextToLastExp = poe.exponentialAtJoint(lastExpId+1); //siguinte eje al simplifcado para comprobar si será necesario realizar ajuste
-                    return {{lastExpId}, new PardosGotorFive(lastExp, nextToLastExp, testPoints[0])};
+                if(poeTerms[lastExpId+1].simplified == true)//lastExpId + 1 < poeTerms.size() && poeTerms[lastExpId+1].known == false cambiado//PK1 can not be used if we do not know the previous term, so we used PG5 if that term is simplified
+                {//se usa mas veces de las que debería, restringir mas la condicion, porque haya una rotacion y el siguiente termino sea desconocido no se usa
+                    std::cout << "terminos conocidos: " << knownsCount << "\n";
+                    if(knownsCount==0)
+                    {
+                        poeTerms[lastExpId].known = true;
+                        const MatrixExponential & nextToLastExp = poe.exponentialAtJoint(lastExpId+1); //siguinte eje al simplifcado para comprobar si será necesario realizar ajuste
+                        return {{lastExpId}, new PardosGotorFive(lastExp, nextToLastExp, testPoints[0])}; 
+                    }
                 }
                 else//si es conocido  
                 {
@@ -513,7 +514,6 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
 
 void ScrewTheoryIkProblemBuilder::simplify(int depth)
 {
-    std::cout <<"point: ("<< testPoints[0].x() << ", " <<  testPoints[0].y() << ", " <<  testPoints[0].z() <<")\n";
     simplifyWithPadenKahanOne(testPoints[0]);
 
     if (depth == 1)
@@ -526,22 +526,19 @@ void ScrewTheoryIkProblemBuilder::simplify(int depth)
         {
             if (poe.exponentialAtJoint(i).getMotionType() == MatrixExponential::TRANSLATION)
             {
-                std::cout << "entra a simplifyWithPardosOne\n";
                 simplifyWithPardosOne();
                 break;
             }
             // try to simplify for cases of rotations that do not change the plane in which a point moves, allowing to apply PG5
-           ///*
+           /*
            else if (poe.exponentialAtJoint(i).getMotionType() == MatrixExponential::ROTATION)
             {
-                //std::cout << "entra a simplifyWithPardosFive\n";
                 if(simplifyWithPardosFive())
                 {
-                    std::cout <<"simplificacion correcta \n";
                     break;  
                 }  //si entra y simplifica break, si no no                           
             }
-            //*/
+            */
         }
     }
 }
@@ -561,7 +558,6 @@ void ScrewTheoryIkProblemBuilder::simplifyWithPadenKahanOne(const KDL::Vector & 
         if (exp.getMotionType() == MatrixExponential::ROTATION && liesOnAxis(exp, point))
         {
             rit->simplified = true;
-            std::cout <<"axis: ("<< exp.getAxis().x() << ", " <<  exp.getAxis().y() << ", " <<  exp.getAxis().z() <<")\n";
         }
         else
         {
@@ -716,7 +712,6 @@ bool ScrewTheoryIkProblemBuilder::simplifyWithPardosFive()
                 if (samePlane(currentExp, nextExp))
                 {
                     // Might be ultimately simplified, let's find out in the next iterations.
-                    std::cout <<"mismo plano\n";
                     if(poeTerms[i].known || poeTerms[i].simplified || poeTerms[i+1].known || poeTerms[i+1].simplified) break;
 
                     simplified = true;
@@ -726,12 +721,15 @@ bool ScrewTheoryIkProblemBuilder::simplifyWithPardosFive()
             }
             else if ((!samePlane(firstExp, nextExp)) && (simplified == true))
             {
+                int knownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), knownTerm);
+                std::cout << "terminos conocidos: " << knownsCount << "\n";
                 // Can simplify everything to the *right* of this PoE term.
                 for (int j = idStart + 1; j <= idEnd; j++)
                 {
-                    std::cout << "entra al else if !samePlane\n";
                     poeTerms[j].simplified = true;                   
                 }
+                knownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), knownTerm);
+                std::cout << "terminos conocidos: " << knownsCount << "\n";                
                 return true;
             }
 
