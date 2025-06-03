@@ -1187,6 +1187,35 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
     checkSolutions(actual, expected);
 }
 
+TEST_F(ScrewTheoryTest, PardosGotorFive)
+{
+    //tests de pg1 --- CAMBIAR POR UNO APTO PARA PG5
+    KDL::Vector p(0, 1, 1);
+    KDL::Vector k(2, 0, 0);
+
+    MatrixExponential exp(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
+    PardosGotorFive pg5(exp, p);
+
+    ASSERT_EQ(pg5.solutions(), 1);  
+
+    KDL::Frame rhs(k - p);
+    ScrewTheoryIkSubproblem::Solutions actual;
+    ASSERT_TRUE(pg5.solve(rhs, KDL::Frame::Identity(), actual));
+
+    ASSERT_EQ(actual.size(), 2);
+    ASSERT_EQ(actual[0].size(), 1);
+    ASSERT_EQ(actual[1].size(), 1);
+
+    ScrewTheoryIkSubproblem::Solutions expected = {
+        {-KDL::PI_2},
+        {KDL::PI_2},
+    };
+
+    checkSolutions(actual, expected);
+
+    //habría que añadir una para comprobar el caso del ajuste
+}
+
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)
 {
     KDL::Chain chain = makeAbbIrb120KinematicsFromDH();

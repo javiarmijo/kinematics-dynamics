@@ -272,6 +272,42 @@ private:
     const KDL::Rotation axisPow;
 };
 
+/**
+ * @ingroup ScrewTheoryLib
+ *
+ * @brief Fifth Pardos-Gotor subproblem
+ *
+ * 
+ * 
+ * 
+ */
+class PardosGotorFive : public ScrewTheoryIkSubproblem
+{
+public:
+    using ScrewTheoryIkSubproblem::solve;
+
+    /**
+     * @brief Constructor
+     *
+     * @param exp POE term.
+     * @param p Characteristic point.
+     */
+    PardosGotorFive(const MatrixExponential & exp, const KDL::Vector & p);
+
+    bool solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const override;
+
+    int solutions() const override
+    { return 1; }
+
+    const char * describe() const override
+    { return "PG5"; }
+
+private:
+    const MatrixExponential exp;
+    const KDL::Vector p;
+    const KDL::Rotation axisPow;
+};
+
 } // namespace roboticslab
 
 #endif // __SCREW_THEORY_IK_SUBPROBLEMS_HPP__
