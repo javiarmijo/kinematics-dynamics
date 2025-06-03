@@ -1263,7 +1263,7 @@ TEST_F(ScrewTheoryTest, TeoRightArmKinematics)
 
     checkRobotKinematics(chain, poe, 8);
 }
-/*
+
 TEST_F(ScrewTheoryTest, TeoRightLegKinematics)
 {
     KDL::Chain chain = makeTeoRightLegKinematicsFromDH();
@@ -1364,5 +1364,5 @@ TEST_F(ScrewTheoryTest, ConfigurationSelectorGait)
 
     ASSERT_NE(n1, -1);
     delete config;
-}*/
+}
 } // namespace roboticslab::test
