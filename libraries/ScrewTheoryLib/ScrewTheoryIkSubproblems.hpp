@@ -297,7 +297,7 @@ public:
     bool solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const override;
 
     int solutions() const override
-    { return 1; }
+    { return 2; }
 
     const char * describe() const override
     { return "PG5"; }

@@ -294,10 +294,7 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         }
         */
 
-    solutions = {
-        {normalizeAngle(theta_k)},
-        {normalizeAngle(theta_d)}
-    };
+    solutions = {{normalizeAngle(theta_k)}, {normalizeAngle(theta_d)}};
 
     return KDL::Equal(u_w, v_w);// && KDL::Equal(u_p.Norm(), v_p.Norm()); eso sería para pk1
 }

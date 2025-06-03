@@ -301,6 +301,9 @@ ScrewTheoryIkProblem::Steps ScrewTheoryIkProblemBuilder::searchSolutions()
         // Find a solution if available.
         if (auto [ids, subproblem] = trySolve(depth); subproblem != nullptr)
         {
+            std::cout << "[SOLUCIÓN ENCONTRADA] Subproblema: " << subproblem->describe() << " en IDs: ";
+            for (auto id : ids) std::cout << id << " ";
+            std::cout << std::endl;
             // Solution found, reset and start again. We'll iterate over the same points, taking
             // into account that some terms are already known.
             steps.emplace_back(ids, subproblem);
@@ -411,8 +414,8 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 }
                 else
                 {
-                    std::cout << "debería resolver por PG5\n";
-                    return {{}, nullptr};
+                    poeTerms[lastExpId].known = true;
+                    return {{lastExpId}, new PardosGotorFive(lastExp, testPoints[0])};
                 }
 
             }

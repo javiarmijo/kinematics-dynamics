@@ -4,6 +4,7 @@
 
 #include <numeric> // std::accumulate
 #include <vector>
+#include <iostream>
 
 #include "ScrewTheoryTools.hpp"
 
@@ -22,6 +23,9 @@ namespace
     {
         inline int operator()(int count, const ScrewTheoryIkProblem::JointIdsToSubproblem & idToSubproblem)
         {
+            int localSol = idToSubproblem.second->solutions();
+            std::cout << "[CREATE] Subproblema " << idToSubproblem.second->describe()
+                      << " con " << localSol << " soluciones\n";
             return count * idToSubproblem.second->solutions();
         }
     }
