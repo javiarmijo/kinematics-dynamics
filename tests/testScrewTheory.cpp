@@ -1336,5 +1336,4 @@ TEST_F(ScrewTheoryTest, ConfigurationSelectorGait)
     ASSERT_NE(n1, -1);
     delete config;
 }
-
 } // namespace roboticslab::test
