@@ -495,7 +495,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
             }
         }
     }
-    else
+    else//HACE FALTA PONER ALGUNA CONDICION? DE MOMENTO FUNCIONA BIEN ASI
     {
         poeTerms[lastExpId].known = true;
         return {{lastExpId}, new PardosGotorFive(lastExp, testPoints[0])};
