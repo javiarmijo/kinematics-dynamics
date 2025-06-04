@@ -270,7 +270,7 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         theta_d= theta_k - KDL::PI;
     }
 
-    //Ajuste PG5
+    //Ajuste PG5 
 
     for(int i=0; i < 3; i++)
     {
@@ -279,6 +279,7 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
             float x = dot(f - exp.getOrigin(), exp_next.getAxis());
             if(x != 0)
             {
+                std::cout<<"hace ajuste\n";
                 double d = f.data[i];//es la distancia que estará desplazado el plano con respecto al plano de movimiento
 
                 //Recalcula los ángulso con el ajuste

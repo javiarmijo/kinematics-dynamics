@@ -387,7 +387,7 @@ void ScrewTheoryIkProblemBuilder::refreshSimplificationState()
 ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve(int depth)
 {
     int unknownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), unknownNotSimplifiedTerm);
-
+    bool pg5 = false;
     if (unknownsCount == 0 || unknownsCount > 2) // TODO: hardcoded
     {
         // Can't solve yet, too many unknowns or oversimplified.
@@ -449,6 +449,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 return {{lastExpId}, new PardosGotorThree(lastExp, testPoints[0], testPoints[1])};
             }
         }
+        pg5 = true;
     }
     else if (unknownsCount == 2 && lastUnknown != poeTerms.rend())
     {
@@ -494,9 +495,15 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 return {{nextToLastExpId, lastExpId}, new PardosGotorFour(nextToLastExp, lastExp, testPoints[0])};
             }
         }
+        pg5 = true;
     }
-    else if (poeTerms[lastExpId + 1].simplified == true)//HACE FALTA PONER ALGUNA CONDICION? DE MOMENTO FUNCIONA BIEN ASI
+
+    if (pg5 == true && poeTerms[lastExpId + 1].simplified == true 
+        && lastExp.getMotionType() == MatrixExponential::ROTATION
+        && !liesOnAxis(lastExp, testPoints[0]) 
+        && unknownsCount == 1 && depth == 0)//if (poeTerms[lastExpId + 1].simplified == true)//HACE FALTA PONER ALGUNA CONDICION? DE MOMENTO FUNCIONA BIEN ASI
     {
+        std::cout << "hola?\n";
         const MatrixExponential & nextToLastExp = poe.exponentialAtJoint(lastExpId + 1);
         poeTerms[lastExpId].known = true;
         return {{lastExpId}, new PardosGotorFive(lastExp, nextToLastExp, testPoints[0])};

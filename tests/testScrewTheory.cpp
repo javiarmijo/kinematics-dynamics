@@ -1318,7 +1318,7 @@ TEST_F(ScrewTheoryTest, AbbIrb6620lxKinematics)
 
     checkRobotKinematics(chain, poe, 4);
 }
-/*
+///*
 TEST_F(ScrewTheoryTest, UR16eKinematics)
 {
     KDL::Chain chain = makeUR16eFromDh();
@@ -1326,7 +1326,7 @@ TEST_F(ScrewTheoryTest, UR16eKinematics)
 
     checkRobotKinematics(chain, poe, 8);
 }
-*/
+//*/
 TEST_F(ScrewTheoryTest, TeoRightArmKinematics)
 {
     KDL::Chain chain = makeTeoRightArmKinematicsFromDH();
