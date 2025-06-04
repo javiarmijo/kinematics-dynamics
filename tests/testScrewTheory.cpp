@@ -273,6 +273,54 @@ public:
         return poe;
     }
 
+    static KDL::Chain makeUR16eFromDh()//la mía
+    {
+        const KDL::Joint rotZ(KDL::Joint::RotZ);
+        KDL::Chain chain;
+
+        chain.addSegment(KDL::Segment(KDL::Joint(KDL::Joint::None), KDL::Frame(KDL::Rotation::RotZ(0))));
+
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, -KDL::PI_2, 0.181, 0)));//a,alpha,d,tetha (d y tetha para cambios de x)
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.478, 0, 0.0, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.36, 0,0.174, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, -KDL::PI_2, 0.0, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, KDL::PI_2, -0.12, 0)));
+        chain.addSegment(KDL::Segment(rotZ, KDL::Frame::DH(0.0, 0, 0.19, KDL::PI)));
+
+        chain.addSegment(KDL::Segment(KDL::Joint(KDL::Joint::None), KDL::Frame(KDL::Rotation::RotZ(0))));
+
+        return chain;
+    }
+
+    static PoeExpression makeUR16eFromPoE()
+    {
+        KDL::Chain chain = makeUR16eFromDh();
+
+        KDL::ChainFkSolverPos_recursive fkSolver(chain);
+        KDL::JntArray q(chain.getNrOfJoints());  // inicializado a ceros
+
+        KDL::Frame H_DH_0;
+        fkSolver.JntToCart(q, H_DH_0);
+
+        //KDL::Frame H_S_T(KDL::Rotation::RotX(-KDL::PI_2) * KDL::Rotation::RotZ(KDL::PI), {0.838, 0.364, 0.061});
+        KDL::Frame H_S_T = H_DH_0;  // copia literal del valor
+
+        //KDL::Frame baseRotation(KDL::Rotation::RotX(-KDL::PI_2) * KDL::Rotation::RotZ(KDL::PI));
+        //KDL::Frame baseRotation(KDL::Rotation::RotZ(KDL::PI) * KDL::Rotation::RotX(-KDL::PI_2));
+        //KDL::Frame H_S_T =baseRotation * H_DH_0;
+
+        PoeExpression poe(H_S_T);
+
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  0, 1}, {    0,     0, 0.181}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  1, 0}, {    0,     0, 0.181}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  1, 0}, {0.478,     0, 0.181}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  1, 0}, {0.838, 0.174, 0.181}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  0,-1}, {0.838, 0.174, 0.061}));
+        poe.append(MatrixExponential(   MatrixExponential::ROTATION, {0,  1, 0}, {0.838, 0.174, 0.061}));
+
+        return poe;
+    }
+
     static void checkSolutions(const ScrewTheoryIkSubproblem::Solutions & actual, const ScrewTheoryIkSubproblem::Solutions & expected)
     {
         ASSERT_EQ(actual.size(), expected.size());
@@ -1189,12 +1237,12 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
 
 TEST_F(ScrewTheoryTest, PardosGotorFive)
 {
-    //tests de pg1 --- CAMBIAR POR UNO APTO PARA PG5
     KDL::Vector p(0, 1, 1);
     KDL::Vector k(2, 0, 0);
 
     MatrixExponential exp(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
-    PardosGotorFive pg5(exp, p);
+    MatrixExponential exp2(MatrixExponential::ROTATION, {1, 0, 0}, {0, 0, 0});
+    PardosGotorFive pg5(exp, exp2, p);
 
     ASSERT_EQ(pg5.solutions(), 2);  
 
@@ -1214,6 +1262,30 @@ TEST_F(ScrewTheoryTest, PardosGotorFive)
     checkSolutions(actual, expected);
 
     //habría que añadir una para comprobar el caso del ajuste
+/*
+    KDL::Vector p2(0, 1, 1);
+    KDL::Vector k2(2, 0, 0);
+
+    MatrixExponential exp_2(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
+    MatrixExponential exp2_2(MatrixExponential::ROTATION, {1, 0, 0}, {0, 0, 0});
+    PardosGotorFive pg5b(exp_2, exp2_2, p2);
+
+    ASSERT_EQ(pg5b.solutions(), 2);  
+
+    KDL::Frame rhs2(k2 - p2);
+    ASSERT_TRUE(pg5b.solve(rhs, KDL::Frame::Identity(), actual));
+
+    ASSERT_EQ(actual.size(), 2);
+    ASSERT_EQ(actual[0].size(), 1);
+    ASSERT_EQ(actual[1].size(), 1);
+
+    expected = {
+        {-KDL::PI_2},
+        {KDL::PI_2},
+    };
+
+    checkSolutions(actual, expected);
+*/
 }
 
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)
@@ -1255,7 +1327,15 @@ TEST_F(ScrewTheoryTest, AbbIrb6620lxKinematics)
 
     checkRobotKinematics(chain, poe, 4);
 }
+/*
+TEST_F(ScrewTheoryTest, UR16eKinematics)
+{
+    KDL::Chain chain = makeUR16eFromDh();
+    PoeExpression poe = makeUR16eFromPoE();
 
+    checkRobotKinematics(chain, poe, 8);
+}
+*/
 TEST_F(ScrewTheoryTest, TeoRightArmKinematics)
 {
     KDL::Chain chain = makeTeoRightArmKinematicsFromDH();

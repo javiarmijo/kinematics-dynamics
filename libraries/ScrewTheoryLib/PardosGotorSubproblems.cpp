@@ -3,6 +3,8 @@
 #include "ScrewTheoryIkSubproblems.hpp"
 
 #include "ScrewTheoryTools.hpp"
+#include <iostream>
+#include <algorithm>
 
 using namespace roboticslab;
 
@@ -230,8 +232,9 @@ bool PardosGotorFour::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
 
 // -----------------------------------------------------------------------------
 
-PardosGotorFive::PardosGotorFive(const MatrixExponential & _exp, const KDL::Vector & _p)
+PardosGotorFive::PardosGotorFive(const MatrixExponential & _exp, const MatrixExponential & _exp_next, const KDL::Vector & _p)
     : exp(_exp),
+      exp_next(_exp_next),
       p(_p),
       axisPow(vectorPow2(exp.getAxis()))
 {}
@@ -266,9 +269,32 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         theta_k = std::atan2(KDL::dot(exp.getAxis(), u_p * v_p), KDL::dot(u_p, v_p));
         theta_d= theta_k - KDL::PI;
     }
-        /*
-        //Ajuste PG5 ---- SEGURAMENTE NO ESTÉ BIEN Y HAYA QUE CAMBIARLO
 
+    //Ajuste PG5 ---- SEGURAMENTE NO ESTÉ BIEN Y HAYA QUE CAMBIARLO
+
+    for(int i=0; i < 3; i++)
+    {
+        if(exp_next.getAxis().data[i]!=0) 
+        {
+            float x = dot(f - exp.getOrigin(), exp_next.getAxis());
+            if(x != 0)
+            {
+                std::cout<<"hace ajuste\n";
+                double d = f.data[i];//es la distancia que estará desplazado el plano con respecto al plano de movimiento
+
+                //Recalcula los ángulso con el ajuste
+
+                double sin1 = std::clamp(d / v_p.Norm(), -1.0, 1.0);//acota el valor entre -1 y 1
+                double sin2 = std::clamp(d / u_p.Norm(), -1.0, 1.0);
+
+                theta_k = theta_k - std::asin(sin1) + std::asin(sin2);
+                theta_d = theta_d + std::asin(sin1) + std::asin(sin2);
+
+            }
+        }
+    }
+        
+        /*
         //Creamos un vector que solo contenga las coordenadas de p en el eje de la rotación anterior al eje que estamos simplificando
 
         KDL::Vector adjust = KDL::Vector(
@@ -278,7 +304,8 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         );
 
 
-        if(!KDL::Equal((adjust - exp.getOrigin()).Norm(), 0.0))//si no son iguales es que el punto carácterístico está desplazado en el eje de la sigueinte rotación, por lo que habrá que realizar el ajuste
+
+       if(!KDL::Equal((adjust - exp.getOrigin()).Norm(), 0.0))//si no son iguales es que el punto carácterístico está desplazado en el eje de la sigueinte rotación, por lo que habrá que realizar el ajuste
         {
             std::cout<<"hace ajuste\n";
             double d=adjust.Norm();//es la distancia que estará desplazado el plano con respecto al plano de movimiento

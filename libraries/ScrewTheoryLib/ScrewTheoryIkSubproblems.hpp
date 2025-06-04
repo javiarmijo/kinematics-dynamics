@@ -290,9 +290,10 @@ public:
      * @brief Constructor
      *
      * @param exp POE term.
+     * @param exp_next POE term.
      * @param p Characteristic point.
      */
-    PardosGotorFive(const MatrixExponential & exp, const KDL::Vector & p);
+    PardosGotorFive(const MatrixExponential & exp, const MatrixExponential & exp_next, const KDL::Vector & p);
 
     bool solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const override;
 
@@ -304,6 +305,7 @@ public:
 
 private:
     const MatrixExponential exp;
+    const MatrixExponential exp_next;
     const KDL::Vector p;
     const KDL::Rotation axisPow;
 };

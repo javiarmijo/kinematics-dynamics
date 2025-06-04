@@ -407,7 +407,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
             if (lastExp.getMotionType() == MatrixExponential::ROTATION
                     && !liesOnAxis(lastExp, testPoints[0]))
             {
-                if (poeTerms[lastExpId + 1].simplified != true)
+/*MIRAR*/       if (poeTerms[lastExpId + 1].simplified != true)
                 {
                     poeTerms[lastExpId].known = true;
                     return {{lastExpId}, new PadenKahanOne(lastExp, testPoints[0])};
@@ -495,10 +495,11 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
             }
         }
     }
-    else//HACE FALTA PONER ALGUNA CONDICION? DE MOMENTO FUNCIONA BIEN ASI
+    else if (poeTerms[lastExpId + 1].simplified == true)//HACE FALTA PONER ALGUNA CONDICION? DE MOMENTO FUNCIONA BIEN ASI
     {
+        const MatrixExponential & nextToLastExp = poe.exponentialAtJoint(lastExpId + 1);
         poeTerms[lastExpId].known = true;
-        return {{lastExpId}, new PardosGotorFive(lastExp, testPoints[0])};
+        return {{lastExpId}, new PardosGotorFive(lastExp, nextToLastExp, testPoints[0])};
     }
 
     return {{}, nullptr};
