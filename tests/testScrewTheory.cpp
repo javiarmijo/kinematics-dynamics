@@ -1262,30 +1262,21 @@ TEST_F(ScrewTheoryTest, PardosGotorFive)
     checkSolutions(actual, expected);
 
     //habría que añadir una para comprobar el caso del ajuste
-/*
-    KDL::Vector p2(0, 1, 1);
-    KDL::Vector k2(2, 0, 0);
 
-    MatrixExponential exp_2(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
-    MatrixExponential exp2_2(MatrixExponential::ROTATION, {1, 0, 0}, {0, 0, 0});
-    PardosGotorFive pg5b(exp_2, exp2_2, p2);
+    KDL::Vector p2(0.3, 1, 1);
 
-    ASSERT_EQ(pg5b.solutions(), 2);  
+    PardosGotorFive pg5b(exp, exp2, p2);
 
-    KDL::Frame rhs2(k2 - p2);
+    KDL::Frame rhs2(k - p2);
     ASSERT_TRUE(pg5b.solve(rhs, KDL::Frame::Identity(), actual));
 
-    ASSERT_EQ(actual.size(), 2);
-    ASSERT_EQ(actual[0].size(), 1);
-    ASSERT_EQ(actual[1].size(), 1);
-
     expected = {
-        {-KDL::PI_2},
-        {KDL::PI_2},
+        {-1.11869},
+        {2.284517},
     };
 
     checkSolutions(actual, expected);
-*/
+
 }
 
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)

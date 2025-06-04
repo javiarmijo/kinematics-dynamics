@@ -270,7 +270,7 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         theta_d= theta_k - KDL::PI;
     }
 
-    //Ajuste PG5 ---- SEGURAMENTE NO ESTÉ BIEN Y HAYA QUE CAMBIARLO
+    //Ajuste PG5
 
     for(int i=0; i < 3; i++)
     {
@@ -279,7 +279,6 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
             float x = dot(f - exp.getOrigin(), exp_next.getAxis());
             if(x != 0)
             {
-                std::cout<<"hace ajuste\n";
                 double d = f.data[i];//es la distancia que estará desplazado el plano con respecto al plano de movimiento
 
                 //Recalcula los ángulso con el ajuste
@@ -294,33 +293,6 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         }
     }
         
-        /*
-        //Creamos un vector que solo contenga las coordenadas de p en el eje de la rotación anterior al eje que estamos simplificando
-
-        KDL::Vector adjust = KDL::Vector(
-            exp_next.getAxis().x() * f.x(),
-            exp_next.getAxis().y() * f.y(),
-            exp_next.getAxis().z() * f.z()
-        );
-
-
-
-       if(!KDL::Equal((adjust - exp.getOrigin()).Norm(), 0.0))//si no son iguales es que el punto carácterístico está desplazado en el eje de la sigueinte rotación, por lo que habrá que realizar el ajuste
-        {
-            std::cout<<"hace ajuste\n";
-            double d=adjust.Norm();//es la distancia que estará desplazado el plano con respecto al plano de movimiento
-
-            //Recalcula los ángulso con el ajuste
-
-            double sin1 = std::clamp(d / v_p.Norm(), -1.0, 1.0);//acota el valor entre -1 y 1
-            double sin2 = std::clamp(d / u_p.Norm(), -1.0, 1.0);
-
-            theta_k = theta_k - std::asin(sin1) + std::asin(sin2);
-            theta_d = theta_d + std::asin(sin1) + std::asin(sin2);
-
-        }
-        */
-
     solutions = {{normalizeAngle(theta_k)}, {normalizeAngle(theta_d)}};
 
     return KDL::Equal(u_w, v_w);// && KDL::Equal(u_p.Norm(), v_p.Norm()); eso sería para pk1
