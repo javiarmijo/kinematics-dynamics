@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include <algorithm> // std::all_of
+#include <iostream>
 
 #include <kdl/chain.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
@@ -1183,6 +1184,39 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
     };
 
     ASSERT_FALSE(pg4d.solve(rhs8, KDL::Frame::Identity(), expected[0], actual));
+
+    checkSolutions(actual, expected);
+}
+
+TEST_F(ScrewTheoryTest, PardosGotorEight)
+{
+    KDL::Vector p(-1, 1, 1);
+    KDL::Vector k(3, 1, 1);
+
+    MatrixExponential exp1(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
+    MatrixExponential exp2(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
+    MatrixExponential exp3(MatrixExponential::ROTATION, {0, 1, 0}, {0, 0, 0}); //la coordenada x era -1
+    PardosGotorEight pg8(exp1, exp2, exp3, p);
+
+    ASSERT_EQ(pg8.solutions(), 2);
+
+    KDL::Frame rhs(k - p);
+    ScrewTheoryIkSubproblem::Solutions actual;
+    ASSERT_TRUE(pg8.solve(rhs, KDL::Frame::Identity(), actual));
+
+    ASSERT_EQ(actual.size(), 2);
+    ASSERT_EQ(actual[0].size(), 3);
+    ASSERT_EQ(actual[1].size(), 3);
+
+    ScrewTheoryIkSubproblem::Solutions expected = {
+        {KDL::PI_2, KDL::PI_2, -KDL::PI_2},
+        {KDL::PI, -KDL::PI_2, -KDL::PI_2}
+    };
+
+    std::cout << "ángulos esperados 1: " << expected[0][0] << " - " << expected[0][1] << " - " << expected[0][2] << "    ";
+    std::cout << "ángulos esperados 2: " << expected[1][0] << " - " << expected[1][1] << " - " << expected[1][2] << "\n";
+    std::cout << "ángulos actuales 1: " << actual[0][0] << " - " << actual[0][1] << " - " << actual[0][2] << "    ";
+    std::cout << "ángulos actuales 2: " << actual[1][0] << " - " << actual[1][1] << " - " << actual[1][2] << "\n";
 
     checkSolutions(actual, expected);
 }

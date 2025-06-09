@@ -3,6 +3,7 @@
 #include "ScrewTheoryIkSubproblems.hpp"
 
 #include "ScrewTheoryTools.hpp"
+#include <iostream>
 
 using namespace roboticslab;
 
@@ -246,7 +247,11 @@ bool PardosGotorEight::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     KDL::Vector f = pointTransform * p;
     KDL::Vector u3 = f - exp3.getOrigin();
     KDL::Vector o3p = exp3.getOrigin() + axisPow * u3;  
-    KDL::Vector o3k = rhs * o3p; //ESTÁ BIEN ASÍ????????
+/**/KDL::Vector o3k = rhs * o3p; //ESTÁ BIEN ASÍ???????? //COMO SACO OK3????
+    std::cout << "f = (" << f.x() <<", " << f.y() << ", " << f.z() << ")\n";
+    std::cout << "o3p = (" << o3p.x() <<", " << o3p.y() << ", " << o3p.z() << ")\n";
+    std::cout << "o3k = (" << o3k.x() <<", " << o3k.y() << ", " << o3k.z() << ")\n";
+    std::cout << "k = (" << (rhs*f).x() <<", " << (rhs*f).y() << ", " <<(rhs*f).z() << ")\n";
     
 
 //------------PONIENDO ESTO ME AHORRARÍA VOLVER A HACER DE NUEVO EL PG4 NO???????-----------------------------------
@@ -369,16 +374,16 @@ bool PardosGotorEight::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     //MatrixExponential exp3k = joint2twist(w3, o3k, 'rot'); //hay  que usar algo así?
     KDL::Vector pk = o3k + (f - o3p);
-    KDL::Vector k = rhs/* * o3p*/ * pk; //BIEN ASI?
+/**/KDL::Vector k = rhs * f; //SERIA PK EN LUGAR DE F NO?
 
-    KDL::Vector u = pk - exp3.getOrigin();
-    KDL::Vector v = k - exp3.getOrigin();
+    u = pk - exp3.getOrigin();
+    v = k - exp3.getOrigin();
 
     KDL::Vector u_w = axisPow * u;
     KDL::Vector v_w = axisPow * v;
 
-    KDL::Vector u_p = u - u_w;
-    KDL::Vector v_p = v - v_w;
+    u_p = u - u_w;
+    v_p = v - v_w;
 
     double theta = reference[0];
 
