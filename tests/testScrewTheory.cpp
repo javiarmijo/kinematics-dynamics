@@ -1187,6 +1187,51 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
     checkSolutions(actual, expected);
 }
 
+TEST_F(ScrewTheoryTest, PardosGotorSeven)
+{
+    //KDL::Vector p(0, 1, 0);
+    //KDL::Vector k(4, 0, 1);
+    //KDL::Vector k(3, 0, 1);
+    //KDL::Vector p(-1, 1, 0);
+    KDL::Vector p(-1, 0, 0);
+    KDL::Vector k(2, 1, 2);
+
+    //MatrixExponential exp1(MatrixExponential::ROTATION, {0, 0, 1}, {4, 0, 0});
+    //MatrixExponential exp3(MatrixExponential::ROTATION, {0, 1, 0}, {0, 0, 0});
+    MatrixExponential exp1(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
+    //MatrixExponential exp2(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
+    MatrixExponential exp2(MatrixExponential::ROTATION, {0, 0, 1}, {1, 0, 0});
+    //MatrixExponential exp3(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
+    //MatrixExponential exp1(MatrixExponential::ROTATION, {0, 0, 1}, {2, 0, 0});
+    MatrixExponential exp3(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
+
+
+    PardosGotorSeven pg7(exp1, exp2, exp3, p);
+    ASSERT_EQ(pg7.solutions(), 4);
+
+    KDL::Frame rhs(k - p);
+    ScrewTheoryIkSubproblem::Solutions actual;
+    ASSERT_TRUE(pg7.solve(rhs, KDL::Frame::Identity(), actual));
+
+    ASSERT_EQ(actual.size(), 4);
+    ASSERT_EQ(actual[0].size(), 3);
+    ASSERT_EQ(actual[1].size(), 3);
+    ASSERT_EQ(actual[2].size(), 3);
+    ASSERT_EQ(actual[3].size(), 3);
+
+    ScrewTheoryIkSubproblem::Solutions expected = {
+        {KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {KDL::PI_2, KDL::PI, -KDL::PI_2},
+        {KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {KDL::PI_2, KDL::PI, -KDL::PI_2}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+}
+
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)
 {
     KDL::Chain chain = makeAbbIrb120KinematicsFromDH();

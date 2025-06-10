@@ -4,6 +4,8 @@
 
 #include "ScrewTheoryTools.hpp"
 
+#include <iostream>
+
 using namespace roboticslab;
 
 // -----------------------------------------------------------------------------
@@ -99,6 +101,7 @@ bool PardosGotorThree::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     double dotPr = KDL::dot(exp.getAxis(), diff);
     double sq2 = std::pow(dotPr, 2) - std::pow(diff.Norm(), 2) + std::pow(delta, 2);
+    std::cout << "sq2 = " << sq2 << "\n";
     bool sq2_zero = KDL::Equal(sq2, 0.0);
 
     bool ret;
@@ -164,6 +167,7 @@ bool PardosGotorFour::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
 
     if (!c_zero && c_test > 0.0 && u_p_norm > 0.0 && v_p_norm > 0.0)
     {
+        std::cout <<"pg4 1\n";
         KDL::Vector omega_a = c_diff / c_norm;
         KDL::Vector omega_h = exp1.getAxis() * omega_a;
 
@@ -199,10 +203,12 @@ bool PardosGotorFour::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
             {normalizeAngle(theta1_2), normalizeAngle(theta2_2)}
         };
 
+        std::cout << "equal = " <<KDL::Equal(m1_p.Norm(), v_p_norm)<<"\n";
         return samePlane && KDL::Equal(m1_p.Norm(), v_p_norm);
     }
     else
     {
+        std::cout <<"pg4 2\n";
         double theta1 = reference[0];
         double theta2 = reference[1];
 
@@ -264,23 +270,70 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     KDL::Vector r4 = (exp1.getAxis() * (o1_dot - o3_dot * axesDot) + exp3.getAxis() * (o3_dot - o1_dot * axesDot)) / (1 - axesDot);
 
     MatrixExponential exp4(MatrixExponential::TRANSLATION, axesCross);
-    PardosGotorThree pg3(exp4, r4, o1);
+    PardosGotorThree pg3_1(exp4, r4, o1);
+    PardosGotorThree pg3_2(exp4, r4, o3);
 
-    Solutions pg3_sols;
+    Solutions pg3_1_sols, pg3_2_sols;
 
-    bool pg3_ret = pg3.solve(KDL::Frame(v_p1 - (r4 - o1)), KDL::Frame::Identity(), pg3_sols);
+    bool pg3_1_ret = pg3_1.solve(KDL::Frame(v_p1 - (r4 - o1)), KDL::Frame::Identity(), pg3_1_sols);
+    bool pg3_2_ret = pg3_2.solve(KDL::Frame(u_p3 - (r4 - o3)), KDL::Frame::Identity(), pg3_2_sols);
 
-    bool ret = pg3_ret;
+    bool ret = pg3_1_ret && pg3_2_ret;
 
     if(!ret) return false;
 
-    KDL::Vector c = r4 + pg3_sols[0][0] * exp4.getAxis();
-    KDL::Vector d = r4 + pg3_sols[1][0] * exp4.getAxis();
+    KDL::Vector c2 = r4 + pg3_2_sols[0][0] * exp4.getAxis();
+    KDL::Vector d2 = r4 + pg3_2_sols[1][0] * exp4.getAxis();
 
+    KDL::Vector c1 = r4 + pg3_1_sols[0][0] * exp4.getAxis();
+    KDL::Vector d1 = r4 + pg3_1_sols[1][0] * exp4.getAxis();
+
+    std::cout << "r4 = (" << r4.x() << ", " << r4.y() << ", " << r4.z() << ")\n";
+    std::cout << "c2 = (" << c2.x() << ", " << c2.y() << ", " << c2.z() << ")\n";
+    std::cout << "d2 = (" << d2.x() << ", " << d2.y() << ", " << d2.z() << ")\n";
+    std::cout << "c1 = (" << c1.x() << ", " << c1.y() << ", " << c1.z() << ")\n";
+    std::cout << "d1 = (" << d1.x() << ", " << d1.y() << ", " << d1.z() << ")\n";
+
+    double theta1;
+
+    PardosGotorFour pg4(exp2, exp3, f);
+
+    Solutions pg4_sols;
+    bool pg4_ret;
+
+    if (c2 == c1)
+    {
+        KDL::Vector m1 = c1 - exp1.getOrigin();
+        KDL::Vector m1_p = m1 - axisPow1 * m1;
+
+        theta1 = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
+
+        pg4_ret = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), pg4_sols);
+    }
+    else if (d1 == d2)
+    {
+        KDL::Vector n1 = d1 - exp1.getOrigin();
+        KDL::Vector n1_p = n1 - axisPow1 * n1;
+
+        theta1 = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
+
+        pg4_ret = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), pg4_sols);
+    }
+
+    solutions = {
+            {theta1, pg4_sols[0][0], pg4_sols[1][0]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
+            {theta1, pg4_sols[0][1], pg4_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
+            {theta1, pg4_sols[0][0], pg4_sols[1][0]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
+            {theta1, pg4_sols[0][1], pg4_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
+    };
+
+    return pg4_ret;
+
+/*
     double theta1_ck, theta1_dk;
 
-    KDL::Vector m1 = c - exp1.getOrigin();
-    KDL::Vector n1 = d - exp1.getOrigin();
+    KDL::Vector m1 = c1 - exp1.getOrigin();
+    KDL::Vector n1 = d1 - exp1.getOrigin();
 
     KDL::Vector m1_p = m1 - axisPow1 * m1;
     KDL::Vector n1_p = n1 - axisPow1 * n1;
@@ -290,22 +343,24 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     //pg4
 
-    PardosGotorFour pg4(exp3, exp3, f);
+    PardosGotorFour pg4(exp2, exp3, f);
 
     Solutions pg4_1_sols, pg4_2_sols;
 
-    bool pg4_1_ret = pg4.solve(KDL::Frame(c - f), KDL::Frame::Identity(), pg4_1_sols);
-    bool pg4_2_ret = pg4.solve(KDL::Frame(d - f), KDL::Frame::Identity(), pg4_2_sols);
+    bool pg4_1_ret = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), pg4_1_sols);
+    bool pg4_2_ret = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), pg4_2_sols);
 
     solutions = {
-            {pg4_1_sols[0][0], pg4_1_sols[1][0]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
-            {pg4_1_sols[0][1], pg4_1_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
-            {pg4_2_sols[0][0], pg4_2_sols[1][0]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
-            {pg4_2_sols[0][1], pg4_2_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
+            {theta1_ck, pg4_1_sols[0][0], pg4_1_sols[1][0]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
+            {theta1_ck, pg4_1_sols[0][1], pg4_1_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
+            {theta1_dk, pg4_2_sols[0][0], pg4_2_sols[1][0]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
+            {theta1_dk, pg4_2_sols[0][1], pg4_2_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
     };
 
-    return pg4_1_ret && pg4_2_ret; // USAR && O || ????
 
+    std::cout << "pg4_1_ret = " << pg4_1_ret << " / pg4_2_ret = " << pg4_2_ret << "\n";
+    return pg4_1_ret && pg4_2_ret; // USAR && O || ????
+*/
 }
 
 // -----------------------------------------------------------------------------
