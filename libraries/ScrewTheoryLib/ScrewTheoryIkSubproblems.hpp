@@ -308,7 +308,7 @@ public:
 private:
     const MatrixExponential exp1, exp2, exp3;
     const KDL::Vector p, n, axesCross;
-    const KDL::Rotation axisPow1, axisPow3;
+    const KDL::Rotation axisPow1, axisPow2;
     const double axesDot;
 };
 

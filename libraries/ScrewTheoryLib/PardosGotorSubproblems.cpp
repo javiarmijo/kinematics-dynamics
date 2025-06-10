@@ -214,6 +214,7 @@ bool PardosGotorFour::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
 
         if (!KDL::Equal(v_p_norm, 0.0))
         {
+            std::cout <<"si no?\n";
             theta1 = std::atan2(KDL::dot(exp1.getAxis(), c_diff * v_p), KDL::dot(c_diff, v_p));
         }
 
@@ -243,9 +244,9 @@ PardosGotorSeven::PardosGotorSeven(const MatrixExponential & _exp1, const Matrix
       p(_p),
       n(computeNormal(exp1, exp2)),
       axisPow1(vectorPow2(exp1.getAxis())),
-      axisPow3(vectorPow2(exp3.getAxis())),
-      axesCross(exp1.getAxis() * exp3.getAxis()),
-      axesDot(KDL::dot(exp1.getAxis(), exp3.getAxis()))
+      axisPow2(vectorPow2(exp2.getAxis())),
+      axesCross(exp1.getAxis() * exp2.getAxis()),
+      axesDot(KDL::dot(exp1.getAxis(), exp2.getAxis()))
 {}
 
 // -----------------------------------------------------------------------------
@@ -258,25 +259,25 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     KDL::Vector u = f - exp3.getOrigin();
     KDL::Vector v = k - exp1.getOrigin();
 
-    KDL::Vector u_p3 = u - axisPow3 * u;
+    KDL::Vector u_p2 = (f - exp2.getOrigin()) - axisPow2 * (f - exp2.getOrigin());
     KDL::Vector v_p1 = v - axisPow1 * v;
 
-    KDL::Vector o3 = exp3.getOrigin() + axisPow3 * u;
+    KDL::Vector o2 = exp2.getOrigin() + axisPow2 * (f - exp2.getOrigin());
     KDL::Vector o1 = exp1.getOrigin() + axisPow1 * v;
 
-    double o3_dot = KDL::dot(exp3.getAxis(), o3);
+    double o2_dot = KDL::dot(exp2.getAxis(), o2);
     double o1_dot = KDL::dot(exp1.getAxis(), o1);
 
-    KDL::Vector r4 = (exp1.getAxis() * (o1_dot - o3_dot * axesDot) + exp3.getAxis() * (o3_dot - o1_dot * axesDot)) / (1 - axesDot);
+    KDL::Vector r4 = (exp1.getAxis() * (o1_dot - o2_dot * axesDot) + exp2.getAxis() * (o2_dot - o1_dot * axesDot)) / (1 - axesDot);
 
     MatrixExponential exp4(MatrixExponential::TRANSLATION, axesCross);
     PardosGotorThree pg3_1(exp4, r4, o1);
-    PardosGotorThree pg3_2(exp4, r4, o3);
+    PardosGotorThree pg3_2(exp4, r4, o2);
 
     Solutions pg3_1_sols, pg3_2_sols;
 
     bool pg3_1_ret = pg3_1.solve(KDL::Frame(v_p1 - (r4 - o1)), KDL::Frame::Identity(), pg3_1_sols);
-    bool pg3_2_ret = pg3_2.solve(KDL::Frame(u_p3 - (r4 - o3)), KDL::Frame::Identity(), pg3_2_sols);
+    bool pg3_2_ret = pg3_2.solve(KDL::Frame(u_p2 - (r4 - o2)), KDL::Frame::Identity(), pg3_2_sols);
 
     bool ret = pg3_1_ret && pg3_2_ret;
 
