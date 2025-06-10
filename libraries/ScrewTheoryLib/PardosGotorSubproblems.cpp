@@ -320,6 +320,11 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
         pg4_ret = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), pg4_sols);
     }
+    else
+    {
+        std::cout << "problema aquí?\n";
+        return false;
+    } 
 
     solutions = {
             {theta1, pg4_sols[0][0], pg4_sols[1][0]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    

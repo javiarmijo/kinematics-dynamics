@@ -1189,7 +1189,7 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
 
 TEST_F(ScrewTheoryTest, PardosGotorSeven)
 {
-    KDL::Vector p(-1, 0, 0);
+    KDL::Vector p(-3, 0, 0);
     KDL::Vector k(2, 1, 2);
 
     MatrixExponential exp1(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
