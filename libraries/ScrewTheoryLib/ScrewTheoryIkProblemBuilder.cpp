@@ -385,7 +385,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
 {
     int unknownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), unknownNotSimplifiedTerm);
 
-    if (unknownsCount == 0 || unknownsCount > 2) // TODO: hardcoded
+    if (unknownsCount == 0 || unknownsCount > 3) // TODO: hardcoded
     {
         // Can't solve yet, too many unknowns or oversimplified.
         return {{}, nullptr};
@@ -395,6 +395,11 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
     auto lastUnknown = std::find_if(poeTerms.rbegin(), poeTerms.rend(), unknownNotSimplifiedTerm);
     int lastExpId = std::distance(poeTerms.begin(), lastUnknown.base()) - 1;
     const MatrixExponential & lastExp = poe.exponentialAtJoint(lastExpId);
+    // Pick the previous PoE term.
+    auto nextToLastUnknown = lastUnknown;
+    std::advance(nextToLastUnknown, 1);
+    auto doubleNextToLastUnknown = nextToLastUnknown;
+    std::advance(doubleNextToLastUnknown, 1);
 
     // Select the most adequate subproblem, if available.
     if (unknownsCount == 1)
@@ -440,10 +445,6 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
     }
     else if (unknownsCount == 2 && lastUnknown != poeTerms.rend())
     {
-        // Pick the previous PoE term.
-        auto nextToLastUnknown = lastUnknown;
-        std::advance(nextToLastUnknown, 1);
-
         if (!unknownNotSimplifiedTerm(*nextToLastUnknown))
         {
             return {{}, nullptr};
@@ -482,6 +483,36 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 return {{nextToLastExpId, lastExpId}, new PardosGotorFour(nextToLastExp, lastExp, testPoints[0])};
             }
         }
+    }
+    else if(unknownsCount == 3 && nextToLastUnknown != poeTerms.rend())
+    {
+        /*
+        if ((!unknownNotSimplifiedTerm(*nextToLastUnknown)) && (!unknownNotSimplifiedTerm(*doubleNextToLastUnknown)))
+        {
+            return {{}, nullptr};
+        }
+
+        int nextToLastExpId = lastExpId - 1;
+        const MatrixExponential & nextToLastExp = poe.exponentialAtJoint(nextToLastExpId);
+        int secondNextToLastExpId = nextToLastExpId - 1;
+        const MatrixExponential & secondNextToLastExp = poe.exponentialAtJoint(secondNextToLastExpId);
+
+        if (depth == 0)
+        {
+            KDL::Vector r;
+
+            if (lastExp.getMotionType() == MatrixExponential::ROTATION
+                    && nextToLastExp.getMotionType() == MatrixExponential::ROTATION
+                    && secondNextToLastExp.getMotionType() == MatrixExponential::ROTATION
+                    && !parallelAxes(secondNextToLastExp, nextToLastExp)
+                    && parallelAxes(nextToLastExp, lastExp)
+                    && !colinearAxes(nextToLastExp, lastExp))
+            {
+                poeTerms[lastExpId].known = poeTerms[nextToLastExpId].known = poeTerms[secondNextToLastExpId].known = true;
+                return {{secondNextToLastExpId, nextToLastExpId, lastExpId}, new PardosGotorSeven(secondNextToLastExp, nextToLastExp, lastExp, testPoints[0])};
+            }
+        }
+        */
     }
 
     return {{}, nullptr};
