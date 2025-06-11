@@ -246,6 +246,7 @@ PardosGotorSeven::PardosGotorSeven(const MatrixExponential & _exp1, const Matrix
       axisPow1(vectorPow2(exp1.getAxis())),
       axisPow2(vectorPow2(exp2.getAxis())),
       axesCross(exp1.getAxis() * exp2.getAxis()),
+      axesCross_inverted(exp2.getAxis() * exp1.getAxis()),
       axesDot(KDL::dot(exp1.getAxis(), exp2.getAxis()))
 {}
 
@@ -263,35 +264,61 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     KDL::Vector v_p1 = v - axisPow1 * v;
 
     KDL::Vector o2 = exp2.getOrigin() + axisPow2 * (f - exp2.getOrigin());
+    //KDL::Vector o3 = exp3.getOrigin() + axisPow3 * u;
     KDL::Vector o1 = exp1.getOrigin() + axisPow1 * v;
 
     double o2_dot = KDL::dot(exp2.getAxis(), o2);
+    //double o3_dot = KDL::dot(exp3.getAxis(), o3);
     double o1_dot = KDL::dot(exp1.getAxis(), o1);
 
     KDL::Vector r4 = (exp1.getAxis() * (o1_dot - o2_dot * axesDot) + exp2.getAxis() * (o2_dot - o1_dot * axesDot)) / (1 - axesDot);
+    //KDL::Vector r4 = (exp1.getAxis() * (o1_dot - o3_dot * axesDot) + exp3.getAxis() * (o3_dot - o1_dot * axesDot)) / (1 - axesDot);
 
-    MatrixExponential exp4(MatrixExponential::TRANSLATION, axesCross);
+    KDL::Vector newAxes = axesCross;
+    KDL::Vector dir = o1 - o2;
+
+    if (KDL::dot(axesCross, dir) < 0.0)
+    {
+        std::cout <<"hola\n";
+        newAxes = axesCross_inverted;  // invertir si está en sentido opuesto al giro real
+    }
+        
+/**/MatrixExponential exp4(MatrixExponential::TRANSLATION, axesCross/*MAAAAL --- SI PONGO NEW AXES DA SEGFAULT*/);//A VECES COGE SENTIDO CONTRARIO. CORREGIR
     PardosGotorThree pg3_1(exp4, r4, o1);
-    PardosGotorThree pg3_2(exp4, r4, o2);
+    //PardosGotorThree pg3_2(exp4, r4, o2);
 
     Solutions pg3_1_sols, pg3_2_sols;
 
     bool pg3_1_ret = pg3_1.solve(KDL::Frame(v_p1 - (r4 - o1)), KDL::Frame::Identity(), pg3_1_sols);
-    bool pg3_2_ret = pg3_2.solve(KDL::Frame(u_p2 - (r4 - o2)), KDL::Frame::Identity(), pg3_2_sols);
+    //bool pg3_2_ret = pg3_2.solve(KDL::Frame(u_p2 - (r4 - o2)), KDL::Frame::Identity(), pg3_2_sols);
 
-    bool ret = pg3_1_ret && pg3_2_ret;
+    bool ret = pg3_1_ret; 
 
     if(!ret) return false;
 
-    KDL::Vector c2 = r4 + pg3_2_sols[0][0] * exp4.getAxis();
-    KDL::Vector d2 = r4 + pg3_2_sols[1][0] * exp4.getAxis();
+  //KDL::Vector c2 = r4 + pg3_2_sols[0][0] * exp4.getAxis();
+  //KDL::Vector d2 = r4 + pg3_2_sols[1][0] * exp4.getAxis();
 
-    KDL::Vector c1 = r4 + pg3_1_sols[0][0] * exp4.getAxis();
+/**/KDL::Vector c1 = r4 + pg3_1_sols[0][0] * exp4.getAxis();//EL AXIS A VECES SALE EN SENTIDO CONTRARIO AL ESPERADO Y POR ESO EL ERROR
     KDL::Vector d1 = r4 + pg3_1_sols[1][0] * exp4.getAxis();
 
+    std::cout << "exp1.getAxis = (" << exp1.getAxis().x() << ", " << exp1.getAxis().y() << ", " << exp1.getAxis().z() << ")\n";
+    std::cout << "exp2.getAxis = (" << exp2.getAxis().x() << ", " << exp2.getAxis().y() << ", " << exp2.getAxis().z() << ")\n";
+    std::cout << "axesCross = (" << axesCross.x() << ", " << axesCross.y() << ", " << axesCross.z() << ")\n";    
+    std::cout << "axesCross inverted = (" << axesCross_inverted.x() << ", " << axesCross_inverted.y() << ", " << axesCross_inverted.z() << ")\n";    
+    std::cout << "newAxis = (" << newAxes.x() << ", " << newAxes.y() << ", " << newAxes.z() << ")\n";    
+    std::cout << "v = (" << v.x() << ", " << v.y() << ", " << v.z() << ")\n";
+    std::cout << "f - exp2.getOrigin() = (" << (f - exp2.getOrigin()).x() << ", " << (f - exp2.getOrigin()).y() << ", " << (f - exp2.getOrigin()).z() << ")\n";
+    std::cout << "exp1.origin = (" << exp1.getOrigin().x() << ", " << exp1.getOrigin().y() << ", " << exp1.getOrigin().z() << ")\n";
+    std::cout << "exp2.origin = (" << exp2.getOrigin().x() << ", " << exp2.getOrigin().y() << ", " << exp2.getOrigin().z() << ")\n";    
+    std::cout << "exp4.axis = (" << exp4.getAxis().x() << ", " << exp4.getAxis().y() << ", " << exp4.getAxis().z() << ")\n";    
+    std::cout << "o1 = (" << o1.x() << ", " << o1.y() << ", " << o1.z() << ")\n";
+    std::cout << "o2 = (" << o2.x() << ", " << o2.y() << ", " << o2.z() << ")\n";
     std::cout << "r4 = (" << r4.x() << ", " << r4.y() << ", " << r4.z() << ")\n";
-    std::cout << "c2 = (" << c2.x() << ", " << c2.y() << ", " << c2.z() << ")\n";
-    std::cout << "d2 = (" << d2.x() << ", " << d2.y() << ", " << d2.z() << ")\n";
+    //std::cout << "c2 = (" << c2.x() << ", " << c2.y() << ", " << c2.z() << ")\n";
+    //std::cout << "d2 = (" << d2.x() << ", " << d2.y() << ", " << d2.z() << ")\n";
+    std::cout << "pg3_sol_1 = " << pg3_1_sols[0][0] << "\n";
+    std::cout << "pg3_sol_2 = " << pg3_1_sols[1][0] << "\n";
     std::cout << "c1 = (" << c1.x() << ", " << c1.y() << ", " << c1.z() << ")\n";
     std::cout << "d1 = (" << d1.x() << ", " << d1.y() << ", " << d1.z() << ")\n";
 
@@ -308,7 +335,11 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     std::cout << "pg4_ret_c = " << pg4_ret_c <<" | pg4_ret_d = " << pg4_ret_d << "\n";
 
-    if (pg4_ret_c)
+    if (pg4_ret_c && pg4_ret_d)
+    {
+        std::cout << "no entra no?\n";
+    }
+    else if (pg4_ret_c)
     {
         KDL::Vector m1 = c1 - exp1.getOrigin();
         KDL::Vector m1_p = m1 - axisPow1 * m1;
@@ -341,67 +372,6 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     };
 
     return true;
-
-
-    /*
-    if (c2 == c1)
-    {
-        KDL::Vector m1 = c1 - exp1.getOrigin();
-        KDL::Vector m1_p = m1 - axisPow1 * m1;
-
-        theta1 = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
-
-        pg4_ret = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), pg4_sols);
-    }
-    else if (d1 == d2)
-    {
-        KDL::Vector n1 = d1 - exp1.getOrigin();
-        KDL::Vector n1_p = n1 - axisPow1 * n1;
-
-        theta1 = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
-
-        pg4_ret = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), pg4_sols);
-    }
-    else
-    {
-        std::cout << "problema aquí?\n";
-        return false;
-    } 
-    */
-
-
-/*
-    double theta1_ck, theta1_dk;
-
-    KDL::Vector m1 = c1 - exp1.getOrigin();
-    KDL::Vector n1 = d1 - exp1.getOrigin();
-
-    KDL::Vector m1_p = m1 - axisPow1 * m1;
-    KDL::Vector n1_p = n1 - axisPow1 * n1;
-
-    theta1_ck = normalizeAngle(std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1)));//normalize bien?
-    theta1_dk = normalizeAngle(std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1)));
-
-    //pg4
-
-    PardosGotorFour pg4(exp2, exp3, f);
-
-    Solutions pg4_1_sols, pg4_2_sols;
-
-    bool pg4_1_ret = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), pg4_1_sols);
-    bool pg4_2_ret = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), pg4_2_sols);
-
-    solutions = {
-            {theta1_ck, pg4_1_sols[0][0], pg4_1_sols[1][0]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
-            {theta1_ck, pg4_1_sols[0][1], pg4_1_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
-            {theta1_dk, pg4_2_sols[0][0], pg4_2_sols[1][0]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
-            {theta1_dk, pg4_2_sols[0][1], pg4_2_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
-    };
-
-
-    std::cout << "pg4_1_ret = " << pg4_1_ret << " / pg4_2_ret = " << pg4_2_ret << "\n";
-    return pg4_1_ret && pg4_2_ret; // USAR && O || ????
-*/
 }
 
 // -----------------------------------------------------------------------------

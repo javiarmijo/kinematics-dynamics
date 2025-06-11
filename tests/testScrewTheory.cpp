@@ -1196,7 +1196,6 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
     MatrixExponential exp2(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
     MatrixExponential exp3(MatrixExponential::ROTATION, {0, 0, 1}, {-2, 0, 0});
 
-
     PardosGotorSeven pg7(exp1, exp2, exp3, p);
     ASSERT_EQ(pg7.solutions(), 4);
 
@@ -1215,6 +1214,30 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
         {KDL::PI_2, -KDL::PI_2, KDL::PI},
         {KDL::PI_2, -KDL::PI_2, KDL::PI},
         {KDL::PI_2, -KDL::PI_2, KDL::PI}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    KDL::Vector p2(0, 1, 0);
+    KDL::Vector k2(4, 0, 1);
+
+    MatrixExponential exp1_b(MatrixExponential::ROTATION, {0, 0, 1}, {3, 0, 0});
+    MatrixExponential exp2_b(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
+    MatrixExponential exp3_b(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
+    PardosGotorSeven pg7_b(exp1_b, exp2_b, exp3_b, p2);
+
+    KDL::Frame rhs2(k2 - p2);
+
+    ASSERT_TRUE(pg7_b.solve(rhs2, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2},
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2}
     };
 
     std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
