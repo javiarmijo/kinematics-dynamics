@@ -1244,6 +1244,30 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
     std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
 
     checkSolutions(actual, expected);
+
+    KDL::Vector p3(0, 1, 0);
+    KDL::Vector k3(2, 0, 1);
+
+    MatrixExponential exp1_c(MatrixExponential::ROTATION, {0, 0, 1}, {2, 1, 0});
+    MatrixExponential exp2_c(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
+    MatrixExponential exp3_c(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
+    PardosGotorSeven pg7_c(exp1_c, exp2_c, exp3_c, p3);
+
+    KDL::Frame rhs3(k3 - p3);
+
+    ASSERT_TRUE(pg7_c.solve(rhs3, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {KDL::PI_2, 0, KDL::PI_2},
+        {KDL::PI_2, KDL::PI_2, -KDL::PI_2},
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
 }
 
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)

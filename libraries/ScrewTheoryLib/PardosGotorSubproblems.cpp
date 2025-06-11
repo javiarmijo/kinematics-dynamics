@@ -375,8 +375,8 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     solutions = {
         {theta_ck, pg4_c_sols[0][0], pg4_c_sols[0][1]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
-        {theta_ck, pg4_d_sols[1][0], pg4_d_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
-        {theta_dk, pg4_c_sols[0][0], pg4_c_sols[0][1]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
+        {theta_ck, pg4_c_sols[1][0], pg4_c_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
+        {theta_dk, pg4_d_sols[0][0], pg4_d_sols[0][1]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
         {theta_dk, pg4_d_sols[1][0], pg4_d_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
     };
 
