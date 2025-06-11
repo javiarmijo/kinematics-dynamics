@@ -1194,7 +1194,7 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
 
     MatrixExponential exp1(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
     MatrixExponential exp2(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
-    MatrixExponential exp3(MatrixExponential::ROTATION, {0, 0, 1}, {-1, 0, 0});
+    MatrixExponential exp3(MatrixExponential::ROTATION, {0, 0, 1}, {-2, 0, 0});
 
 
     PardosGotorSeven pg7(exp1, exp2, exp3, p);
@@ -1211,10 +1211,10 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
     ASSERT_EQ(actual[3].size(), 3);
 
     ScrewTheoryIkSubproblem::Solutions expected = {
-        {KDL::PI_2, KDL::PI_2, KDL::PI_2},
-        {KDL::PI_2, KDL::PI, -KDL::PI_2},
-        {KDL::PI_2, KDL::PI_2, KDL::PI_2},
-        {KDL::PI_2, KDL::PI, -KDL::PI_2}
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI}
     };
 
     std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";

@@ -299,9 +299,51 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     PardosGotorFour pg4(exp2, exp3, f);
 
-    Solutions pg4_sols;
-    bool pg4_ret;
+    Solutions pg4_c_sols, pg4_d_sols, pg4_sols;
+    bool pg4_ret_c, pg4_ret_d;
 
+    pg4_ret_c = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), pg4_c_sols);
+
+    pg4_ret_d = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), pg4_d_sols);
+
+    std::cout << "pg4_ret_c = " << pg4_ret_c <<" | pg4_ret_d = " << pg4_ret_d << "\n";
+
+    if (pg4_ret_c)
+    {
+        KDL::Vector m1 = c1 - exp1.getOrigin();
+        KDL::Vector m1_p = m1 - axisPow1 * m1;
+
+        theta1 = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
+
+        pg4_sols = pg4_c_sols;
+
+    }
+    else if (pg4_ret_d)
+    {
+        KDL::Vector n1 = d1 - exp1.getOrigin();
+        KDL::Vector n1_p = n1 - axisPow1 * n1;
+
+        theta1 = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
+
+        pg4_sols = pg4_d_sols;
+    }
+    else
+    {
+        std::cout << "problema aquí?\n";
+        return false;
+    } 
+
+    solutions = {
+        {theta1, pg4_sols[0][0], pg4_sols[0][1]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
+        {theta1, pg4_sols[1][0], pg4_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
+        {theta1, pg4_sols[0][0], pg4_sols[0][1]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
+        {theta1, pg4_sols[1][0], pg4_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
+    };
+
+    return true;
+
+
+    /*
     if (c2 == c1)
     {
         KDL::Vector m1 = c1 - exp1.getOrigin();
@@ -325,15 +367,8 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
         std::cout << "problema aquí?\n";
         return false;
     } 
+    */
 
-    solutions = {
-            {theta1, pg4_sols[0][0], pg4_sols[1][0]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
-            {theta1, pg4_sols[0][1], pg4_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
-            {theta1, pg4_sols[0][0], pg4_sols[1][0]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
-            {theta1, pg4_sols[0][1], pg4_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
-    };
-
-    return pg4_ret;
 
 /*
     double theta1_ck, theta1_dk;
