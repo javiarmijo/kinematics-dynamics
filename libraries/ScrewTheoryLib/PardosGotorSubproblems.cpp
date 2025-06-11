@@ -283,7 +283,7 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
         newAxes = axesCross_inverted;  // invertir si está en sentido opuesto al giro real
     }
         
-/**/MatrixExponential exp4(MatrixExponential::TRANSLATION, axesCross/*MAAAAL --- SI PONGO NEW AXES DA SEGFAULT*/);//A VECES COGE SENTIDO CONTRARIO. CORREGIR
+/**/MatrixExponential exp4(MatrixExponential::TRANSLATION, newAxes/*MAAAAL --- SI PONGO NEW AXES DA SEGFAULT*/);//A VECES COGE SENTIDO CONTRARIO. CORREGIR
     PardosGotorThree pg3_1(exp4, r4, o1);
     //PardosGotorThree pg3_2(exp4, r4, o2);
 
@@ -296,8 +296,8 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     if(!ret) return false;
 
-  //KDL::Vector c2 = r4 + pg3_2_sols[0][0] * exp4.getAxis();
-  //KDL::Vector d2 = r4 + pg3_2_sols[1][0] * exp4.getAxis();
+  //KDL::Vector c2 = r4 - pg3_1_sols[0][0] * exp4.getAxis();
+  //KDL::Vector d2 = r4 - pg3_1_sols[1][0] * exp4.getAxis();
 
 /**/KDL::Vector c1 = r4 + pg3_1_sols[0][0] * exp4.getAxis();//EL AXIS A VECES SALE EN SENTIDO CONTRARIO AL ESPERADO Y POR ESO EL ERROR
     KDL::Vector d1 = r4 + pg3_1_sols[1][0] * exp4.getAxis();
@@ -322,11 +322,11 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     std::cout << "c1 = (" << c1.x() << ", " << c1.y() << ", " << c1.z() << ")\n";
     std::cout << "d1 = (" << d1.x() << ", " << d1.y() << ", " << d1.z() << ")\n";
 
-    double theta1;
+    double theta_ck, theta_dk;
 
     PardosGotorFour pg4(exp2, exp3, f);
 
-    Solutions pg4_c_sols, pg4_d_sols, pg4_sols;
+    Solutions pg4_c_sols, pg4_d_sols;
     bool pg4_ret_c, pg4_ret_d;
 
     pg4_ret_c = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), pg4_c_sols);
@@ -338,15 +338,24 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     if (pg4_ret_c && pg4_ret_d)
     {
         std::cout << "no entra no?\n";
+        KDL::Vector m1 = c1 - exp1.getOrigin();
+        KDL::Vector m1_p = m1 - axisPow1 * m1;
+
+        KDL::Vector n1 = d1 - exp1.getOrigin();
+        KDL::Vector n1_p = n1 - axisPow1 * n1;
+
+        theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
+        theta_ck = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
+        
     }
     else if (pg4_ret_c)
     {
         KDL::Vector m1 = c1 - exp1.getOrigin();
         KDL::Vector m1_p = m1 - axisPow1 * m1;
 
-        theta1 = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
-
-        pg4_sols = pg4_c_sols;
+        theta_ck = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
+        theta_dk = theta_ck;
+        pg4_d_sols = pg4_c_sols;
 
     }
     else if (pg4_ret_d)
@@ -354,9 +363,9 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
         KDL::Vector n1 = d1 - exp1.getOrigin();
         KDL::Vector n1_p = n1 - axisPow1 * n1;
 
-        theta1 = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
-
-        pg4_sols = pg4_d_sols;
+        theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
+        theta_ck = theta_dk;
+        pg4_c_sols = pg4_d_sols;
     }
     else
     {
@@ -365,10 +374,10 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     } 
 
     solutions = {
-        {theta1, pg4_sols[0][0], pg4_sols[0][1]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
-        {theta1, pg4_sols[1][0], pg4_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
-        {theta1, pg4_sols[0][0], pg4_sols[0][1]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
-        {theta1, pg4_sols[1][0], pg4_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
+        {theta_ck, pg4_c_sols[0][0], pg4_c_sols[0][1]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    
+        {theta_ck, pg4_d_sols[1][0], pg4_d_sols[1][1]},    // y las soluciones 1 y 2 y 3 y 4 serán iguales si los 
+        {theta_dk, pg4_c_sols[0][0], pg4_c_sols[0][1]},    // puntos intermedios de pg4 son iguales. Si c=d y los puntos intermedios
+        {theta_dk, pg4_d_sols[1][0], pg4_d_sols[1][1]}     // de pg4 también, las cuatro soluciones serán iguales
     };
 
     return true;
