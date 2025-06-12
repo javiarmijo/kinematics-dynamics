@@ -245,18 +245,23 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
 {
     KDL::Vector f = pointTransform * p;
     KDL::Vector k = rhs * p;
+    KDL::Vector k_verify = rhs * p;
+
+    bool ret = true;
 
     //HACER QUE LA COORDENADA CORRESPONDIENTE AL EJE DE LA ROTACIÓN SEA LA MISMA PARA F(EQUIVALENTE A P) Y K
     for(int i=0; i < 3; i++)
     {
-        if(exp.getAxis().data[i]!=0) k.data[i]=f.data[i];
+        if(exp.getAxis().data[i]!=0) k_verify.data[i]=f.data[i];
     }
-    
+
     KDL::Vector u = f - exp.getOrigin();
     KDL::Vector v = k - exp.getOrigin();
 
     KDL::Vector u_w = axisPow * u;
     KDL::Vector v_w = axisPow * v;
+
+    if (!(KDL::Equal(u_w, axisPow * (k_verify - exp.getOrigin())))) ret = false;
 
     KDL::Vector u_p = u - u_w;
     KDL::Vector v_p = v - v_w;
@@ -274,7 +279,7 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
 
     for(int i=0; i < 3; i++)
     {
-        if(exp_next.getAxis().data[i]!=0) 
+        if(!(KDL::Equal(exp_next.getAxis().data[i],0))) 
         {
             float x = dot(f - exp.getOrigin(), exp_next.getAxis());
             if(x != 0)
@@ -296,7 +301,9 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
         
     solutions = {{normalizeAngle(theta_k)}, {normalizeAngle(theta_d)}};
 
-    return KDL::Equal(u_w, v_w);// && KDL::Equal(u_p.Norm(), v_p.Norm()); eso sería para pk1
+    //return KDL::Equal(u_w, v_w);// && KDL::Equal(u_p.Norm(), v_p.Norm()); eso sería para pk1
+
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
