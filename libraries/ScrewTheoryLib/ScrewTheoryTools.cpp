@@ -23,6 +23,10 @@ double roboticslab::normalizeAngle(double angle)
     {
         return KDL::PI;
     }
+    else if (KDL::Equal(std::abs(angle), 0))
+    {
+        return 0;
+    }
     else if (angle > KDL::PI)
     {
         return angle - 2 * KDL::PI;

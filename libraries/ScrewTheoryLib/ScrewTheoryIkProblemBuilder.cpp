@@ -415,7 +415,8 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 /*else
                 {
                     poeTerms[lastExpId].known = true;
-                    return {{lastExpId}, new PardosGotorFive(lastExp, testPoints[0])};
+                    const MatrixExponential & nextToLastExp = poe.exponentialAtJoint(lastExpId + 1);
+                    return {{lastExpId}, new PardosGotorFive(lastExp, nextToLastExp, testPoints[0])};
                 }
                 */
             }
@@ -497,7 +498,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
         }
         pg5 = true;
     }
-
+///*
     if (pg5 == true && poeTerms[lastExpId + 1].simplified == true 
         && lastExp.getMotionType() == MatrixExponential::ROTATION
         && !liesOnAxis(lastExp, testPoints[0]) 
@@ -508,7 +509,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
         poeTerms[lastExpId].known = true;
         return {{lastExpId}, new PardosGotorFive(lastExp, nextToLastExp, testPoints[0])};
     }
-
+//*/
     return {{}, nullptr};
 }
 
