@@ -277,6 +277,8 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     KDL::Vector newAxes = axesCross;
     KDL::Vector dir = o1 - o2;
 
+    std::cout << "dot(axesCross, dir) = " << dot(axesCross, dir) << "\n";
+
     if (KDL::dot(axesCross, dir) < 0.0)
     {
         std::cout <<"hola\n";
@@ -315,6 +317,7 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     std::cout << "o1 = (" << o1.x() << ", " << o1.y() << ", " << o1.z() << ")\n";
     std::cout << "o2 = (" << o2.x() << ", " << o2.y() << ", " << o2.z() << ")\n";
     std::cout << "r4 = (" << r4.x() << ", " << r4.y() << ", " << r4.z() << ")\n";
+    std::cout << "k = (" << k.x() << ", " << k.y() << ", " << k.z() << ")\n";
     //std::cout << "c2 = (" << c2.x() << ", " << c2.y() << ", " << c2.z() << ")\n";
     //std::cout << "d2 = (" << d2.x() << ", " << d2.y() << ", " << d2.z() << ")\n";
     std::cout << "pg3_sol_1 = " << pg3_1_sols[0][0] << "\n";
