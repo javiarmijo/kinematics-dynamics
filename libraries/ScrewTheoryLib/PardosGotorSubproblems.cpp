@@ -325,7 +325,10 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     std::cout << "c1 = (" << c1.x() << ", " << c1.y() << ", " << c1.z() << ")\n";
     std::cout << "d1 = (" << d1.x() << ", " << d1.y() << ", " << d1.z() << ")\n";
 
-    double theta_ck, theta_dk;
+    //double theta_ck, theta_dk;
+
+    double theta_dk = reference[0];
+    double theta_ck = reference[1];
 
     PardosGotorFour pg4(exp2, exp3, f);
 
@@ -347,8 +350,21 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
         KDL::Vector n1 = d1 - exp1.getOrigin();
         KDL::Vector n1_p = n1 - axisPow1 * n1;
 
-        theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
-        theta_ck = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
+        std::cout << "v = (" << v.x() << ", " << v.y() << ", " << v.z() << ")\n";
+        std::cout << "v_p1 = (" << v_p1.x() << ", " << v_p1.y() << ", " << v_p1.z() << ")\n";
+        std::cout << "n1 = (" << n1.x() << ", " << n1.y() << ", " << n1.z() << ")\n";
+        std::cout << "n1_p = (" << n1_p.x() << ", " << n1_p.y() << ", " << n1_p.z() << ")\n";
+        std::cout << "m1 = (" << m1.x() << ", " << m1.y() << ", " << m1.z() << ")\n";
+        std::cout << "m1_p = (" << m1_p.x() << ", " << m1_p.y() << ", " << m1_p.z() << ")\n";
+
+        if (!KDL::Equal(v_p1.Norm(), 0.0))
+        {
+            theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
+            theta_ck = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));            
+        }
+
+        std::cout << "theta_ck = " << theta_ck <<"\n";
+        std::cout << "theta_dk = " << theta_dk <<"\n";
         
     }
     else if (pg4_ret_c)
@@ -356,8 +372,12 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
         KDL::Vector m1 = c1 - exp1.getOrigin();
         KDL::Vector m1_p = m1 - axisPow1 * m1;
 
-        theta_ck = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
-        theta_dk = theta_ck;
+        if (!KDL::Equal(v_p1.Norm(), 0.0))
+        {
+            theta_ck = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
+            theta_dk = theta_ck;            
+        }
+
         pg4_d_sols = pg4_c_sols;
 
     }
@@ -366,8 +386,12 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
         KDL::Vector n1 = d1 - exp1.getOrigin();
         KDL::Vector n1_p = n1 - axisPow1 * n1;
 
-        theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
-        theta_ck = theta_dk;
+        if (!KDL::Equal(v_p1.Norm(), 0.0))
+        {
+            theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
+            theta_ck = theta_dk;            
+        }
+
         pg4_c_sols = pg4_d_sols;
     }
     else
@@ -375,6 +399,9 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
         std::cout << "problema aquí?\n";
         return false;
     } 
+
+        std::cout << "theta_ck = " << theta_ck <<"\n";
+        std::cout << "theta_dk = " << theta_dk <<"\n";
 
     solutions = {
         {theta_ck, pg4_c_sols[0][0], pg4_c_sols[0][1]},    // las soluciones 1 y 3 y 2 y 4 serán iguales si c=d,                                                    

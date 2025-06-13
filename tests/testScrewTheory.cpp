@@ -304,7 +304,7 @@ public:
         ASSERT_TRUE(ikProblem);
         ASSERT_EQ(ikProblem->solutions(), soln);
                 
-        ///*
+        /*
                 const auto & steps = ikProblem->getSteps();
 
                 for (const auto [ids, step] : steps)
@@ -317,7 +317,7 @@ public:
                 ScrewTheoryIkProblem::Solutions solutions;
 
                 auto reachability = ikProblem->solve(H_S_T_q_ST, q, solutions);
-        ///*
+        /*
                 for (const auto & solution : solutions)
                 {
                     std::cout << solution(0) << " " << solution(1) << " " << solution(2) << " " << solution(3) << " " << solution(4) << " " << solution(5) << std::endl;
@@ -336,7 +336,7 @@ public:
             KDL::Frame H_S_T_q_ST_validate;
             ASSERT_TRUE(poe.evaluate(solution, H_S_T_q_ST_validate));
             ASSERT_EQ(H_S_T_q_ST_validate, H_S_T_q_ST);
-
+/*
             for (int i = 0; i < 6 ; i++)
             {
                 std:: cout << j+1 << ". solution " << i+1 << " = " << solution(i) << "  |   ";
@@ -344,7 +344,7 @@ public:
             }
 
             std::cout <<"\n";
-
+*/
             if (solution == q)
             {
                 match = true;
@@ -358,9 +358,9 @@ public:
     {
         const int numJoints = chain.getNrOfJoints();
 
-        //checkRobotKinematicsInternal(chain, poe, fillJointValues(numJoints, 0.0), soln);
-        //checkRobotKinematicsInternal(chain, poe, fillJointValues(numJoints, 0.1), soln);
-        //checkRobotKinematicsInternal(chain, poe, fillJointValues(numJoints, KDL::PI_2), soln);
+        checkRobotKinematicsInternal(chain, poe, fillJointValues(numJoints, 0.0), soln);
+        checkRobotKinematicsInternal(chain, poe, fillJointValues(numJoints, 0.1), soln);
+        checkRobotKinematicsInternal(chain, poe, fillJointValues(numJoints, KDL::PI_2), soln);
         checkRobotKinematicsInternal(chain, poe, fillJointValues(numJoints, KDL::PI), soln);
     }
 

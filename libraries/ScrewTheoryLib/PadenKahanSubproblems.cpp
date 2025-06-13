@@ -3,6 +3,7 @@
 #include "ScrewTheoryIkSubproblems.hpp"
 
 #include <cmath>
+#include <iostream>
 
 #include "ScrewTheoryTools.hpp"
 
@@ -87,6 +88,7 @@ bool PadenKahanTwo::solve(const KDL::Frame & rhs, const KDL::Frame & pointTransf
 
     if (!gamma2_zero && gamma2 > 0.0)
     {
+        std::cout << "entra en el primer if?\n";
         double gamma = std::sqrt(gamma2);
         KDL::Vector term2 = gamma * axesCross;
 
@@ -101,13 +103,39 @@ bool PadenKahanTwo::solve(const KDL::Frame & rhs, const KDL::Frame & pointTransf
 
         KDL::Vector n1_p = n - axisPow1 * n;
         KDL::Vector n2_p = n - axisPow2 * n;
-
+/*
+        std::cout << "exp1.getAxis = (" << exp1.getAxis().x() << ", " << exp1.getAxis().y() << ", " << exp1.getAxis().z() << ")\n";
+        std::cout << "exp2.getAxis = (" << exp2.getAxis().x() << ", " << exp2.getAxis().y() << ", " << exp2.getAxis().z() << ")\n";
+        std::cout << "axesCross = (" << axesCross.x() << ", " << axesCross.y() << ", " << axesCross.z() << ")\n";    
+        //std::cout << "axesCross inverted = (" << axesCross_inverted.x() << ", " << axesCross_inverted.y() << ", " << axesCross_inverted.z() << ")\n";    
+        //std::cout << "newAxis = (" << newAxes.x() << ", " << newAxes.y() << ", " << newAxes.z() << ")\n";    
+        std::cout << "v = (" << v.x() << ", " << v.y() << ", " << v.z() << ")\n";
+        std::cout << "f - exp2.getOrigin() = (" << (f - exp2.getOrigin()).x() << ", " << (f - exp2.getOrigin()).y() << ", " << (f - exp2.getOrigin()).z() << ")\n";
+        std::cout << "exp1.origin = (" << exp1.getOrigin().x() << ", " << exp1.getOrigin().y() << ", " << exp1.getOrigin().z() << ")\n";
+        std::cout << "exp2.origin = (" << exp2.getOrigin().x() << ", " << exp2.getOrigin().y() << ", " << exp2.getOrigin().z() << ")\n";    
+        //std::cout << "exp4.axis = (" << exp4.getAxis().x() << ", " << exp4.getAxis().y() << ", " << exp4.getAxis().z() << ")\n";    
+        //std::cout << "o1 = (" << o1.x() << ", " << o1.y() << ", " << o1.z() << ")\n";
+        //std::cout << "o2 = (" << o2.x() << ", " << o2.y() << ", " << o2.z() << ")\n";
+       // std::cout << "r4 = (" << r4.x() << ", " << r4.y() << ", " << r4.z() << ")\n";
+        std::cout << "k = (" << k.x() << ", " << k.y() << ", " << k.z() << ")\n";
+        //std::cout << "c2 = (" << c2.x() << ", " << c2.y() << ", " << c2.z() << ")\n";
+        //std::cout << "d2 = (" << d2.x() << ", " << d2.y() << ", " << d2.z() << ")\n";
+        //std::cout << "pg3_sol_1 = " << pg3_1_sols[0][0] << "\n";
+        //std::cout << "pg3_sol_2 = " << pg3_1_sols[1][0] << "\n";
+        std::cout << "c = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+        std::cout << "d = (" << d.x() << ", " << d.y() << ", " << d.z() << ")\n";
+*/
         double theta1_1 = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p), KDL::dot(m1_p, v_p));
         double theta2_1 = std::atan2(KDL::dot(exp2.getAxis(), u_p * m2_p), KDL::dot(u_p, m2_p));
 
         double theta1_2 = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p), KDL::dot(n1_p, v_p));
         double theta2_2 = std::atan2(KDL::dot(exp2.getAxis(), u_p * n2_p), KDL::dot(u_p, n2_p));
-
+/*
+        std::cout << "normalize theta1_1 = " << normalizeAngle(theta1_1) <<"\n";
+        std::cout << "normalize theta2_1 = " << normalizeAngle(theta2_1) <<"\n";
+        std::cout << "normalize theta1_2 = " << normalizeAngle(theta1_2) <<"\n";
+        std::cout << "normalize theta2_2 = " << normalizeAngle(theta2_2) <<"\n";
+*/
         solutions = {
             {normalizeAngle(theta1_1), normalizeAngle(theta2_1)},
             {normalizeAngle(theta1_2), normalizeAngle(theta2_2)}
@@ -117,6 +145,8 @@ bool PadenKahanTwo::solve(const KDL::Frame & rhs, const KDL::Frame & pointTransf
     }
     else
     {
+        std::cout << "entra en el else?\n";
+
         KDL::Vector n = term1 - r;
         KDL::Vector n1_p = n - axisPow1 * n;
         KDL::Vector n2_p = n - axisPow2 * n;
@@ -126,16 +156,36 @@ bool PadenKahanTwo::solve(const KDL::Frame & rhs, const KDL::Frame & pointTransf
 
         if (!KDL::Equal(v_p.Norm(), 0.0))
         {
+            std::cout <<"no entra aqui a que no?\n";
             theta1 = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p), KDL::dot(n1_p, v_p));
         }
 
         if (!KDL::Equal(u_p.Norm(), 0.0))
         {
+            std::cout <<"aqui tampoco a que no?\n";
             theta2 = std::atan2(KDL::dot(exp2.getAxis(), u_p * n2_p), KDL::dot(u_p, n2_p));
         }
 
+        std::cout << "exp1.getAxis = (" << exp1.getAxis().x() << ", " << exp1.getAxis().y() << ", " << exp1.getAxis().z() << ")\n";
+        std::cout << "exp2.getAxis = (" << exp2.getAxis().x() << ", " << exp2.getAxis().y() << ", " << exp2.getAxis().z() << ")\n";
+        std::cout << "axesCross = (" << axesCross.x() << ", " << axesCross.y() << ", " << axesCross.z() << ")\n";    
+        std::cout << "v = (" << v.x() << ", " << v.y() << ", " << v.z() << ")\n";
+        std::cout << "f - exp2.getOrigin() = (" << (f - exp2.getOrigin()).x() << ", " << (f - exp2.getOrigin()).y() << ", " << (f - exp2.getOrigin()).z() << ")\n";
+        std::cout << "exp1.origin = (" << exp1.getOrigin().x() << ", " << exp1.getOrigin().y() << ", " << exp1.getOrigin().z() << ")\n";
+        std::cout << "exp2.origin = (" << exp2.getOrigin().x() << ", " << exp2.getOrigin().y() << ", " << exp2.getOrigin().z() << ")\n";    
+        std::cout << "k = (" << k.x() << ", " << k.y() << ", " << k.z() << ")\n";
+        std::cout << "r = (" << r.x() << ", " << r.y() << ", " << r.z() << ")\n";
+        std::cout << "n = (" << n.x() << ", " << n.y() << ", " << n.z() << ")\n";
+        std::cout << "n1_p = (" << n1_p.x() << ", " << n1_p.y() << ", " << n1_p.z() << ")\n";
+        std::cout << "n2_p = (" << n2_p.x() << ", " << n2_p.y() << ", " << n2_p.z() << ")\n";
+        std::cout << "v_p = (" << v_p.x() << ", " << v_p.y() << ", " << v_p.z() << ")\n";
+        std::cout << "u_p = (" << u_p.x() << ", " << u_p.y() << ", " << u_p.z() << ")\n";
+
         double normalized1 = normalizeAngle(theta1);
         double normalized2 = normalizeAngle(theta2);
+     
+        std::cout << "normalize1 = " << normalized1 <<"\n";
+        std::cout << "normalized2 = " << normalized2 <<"\n";
 
         solutions = {
             {normalized1, normalized2},
