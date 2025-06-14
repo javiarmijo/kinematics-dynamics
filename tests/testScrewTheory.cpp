@@ -1190,10 +1190,10 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
 
 TEST_F(ScrewTheoryTest, PardosGotorEight)
 {
-    KDL::Vector p(-1, 1, 1);
-    KDL::Vector k(3, 1, 1);
+    KDL::Vector p(-1, 1, 0);
+    KDL::Vector k(4, 1, 1);
 
-    MatrixExponential exp1(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
+    MatrixExponential exp1(MatrixExponential::ROTATION, {0, 1, 0}, {3, 0, 0});
     MatrixExponential exp2(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
     MatrixExponential exp3(MatrixExponential::ROTATION, {0, 1, 0}, {0, 0, 0}); //la coordenada x era -1
     PardosGotorEight pg8(exp1, exp2, exp3, p);
