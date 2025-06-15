@@ -412,6 +412,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 std::cout <<"id = " << id << "\n"; 
                 //int simplifiedCount = std::count_if(poeTerms.begin(), poeTerms.end(), notKnownSimplifiedTerm);
                 std::cout <<"simplifiedCount = " << simplifiedCount << "\n"; 
+                ///*
                 if (simplifiedCount == 1)
                 {
                     auto lastSimplified = std::find_if(poeTerms.rbegin(), poeTerms.rend(), unknownSimplifiedTerm);
@@ -421,6 +422,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                     std::cout <<"simplifiedId = " << sim << "\n"; 
                     poeTerms[sim].known = true;
                 }
+                //*/
                 return {{lastExpId_pg3}, new PardosGotorThree_2(exp_pg3, exp_pk1, testPoints[0], point)};
                 //return {{lastExpId_pg3}, new PardosGotorThree(exp_pk1, testPoints[0], point)};
             }
@@ -850,8 +852,8 @@ bool ScrewTheoryIkProblemBuilder::simplifyWithPardosThree(MatrixExponential & ex
                     if(poeTerms[i].known || poeTerms[i].simplified || poeTerms[i+1].known || poeTerms[i+1].simplified)
                     {
                         std::cout <<"NO NOOOO???  hola??????\n";
-                        //return false;
-                        break;
+                        return false;
+                        //break;
                     }  
                     //std::cout<<"NUEVO : paralelos los ejes " << i << " y " << i + 1 << " (al revés)\n";
                     simplified = true;
