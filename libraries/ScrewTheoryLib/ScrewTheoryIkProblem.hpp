@@ -232,6 +232,7 @@ private:
     void simplifyWithPadenKahanThree(const KDL::Vector & point);
     void simplifyWithPardosOne();
     void simplifyWithPardosFive();
+    bool simplifyWithPardosThree(MatrixExponential & exp1, MatrixExponential & exp2, KDL::Vector & point);
 
     ScrewTheoryIkProblem::JointIdsToSubproblem trySolve(int depth);
 

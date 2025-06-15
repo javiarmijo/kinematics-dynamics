@@ -307,3 +307,75 @@ bool PardosGotorFive::solve(const KDL::Frame & rhs, const KDL::Frame & pointTran
 }
 
 // -----------------------------------------------------------------------------
+
+
+PardosGotorThree_2::PardosGotorThree_2(const MatrixExponential & _exp, const MatrixExponential & _exp_pk1, const KDL::Vector & _p, const KDL::Vector & _k)
+    : exp(_exp),
+      exp_pk1(_exp_pk1),
+      p(_p),
+      k(_k),
+      axisPow(vectorPow2(exp_pk1.getAxis()))
+{}
+
+// -----------------------------------------------------------------------------
+
+bool PardosGotorThree_2::solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const
+{
+    KDL::Vector k2p = rhs * p;
+    KDL::Vector f = pointTransform * p;
+    KDL::Vector rhsAsVector = rhs * p - k;
+    double delta = rhsAsVector.Norm();
+
+    KDL::Vector diff = k - f;
+
+    double dotPr = KDL::dot(exp.getAxis(), diff);
+    double sq2 = std::pow(dotPr, 2) - std::pow(diff.Norm(), 2) + std::pow(delta, 2);
+    bool sq2_zero = KDL::Equal(sq2, 0.0);
+
+    Solutions solutions_pg4;
+
+    bool ret;
+
+    if (!sq2_zero && sq2 > 0)
+    {
+        double sq = std::sqrt(std::abs(sq2));
+        solutions_pg4 = {{dotPr + sq}, {dotPr - sq}};
+        ret = true;
+    }
+    else
+    {
+        KDL::Vector proy = vectorPow2(exp.getAxis()) * diff;
+        double norm = proy.Norm();
+        solutions_pg4 = {{norm}, {norm}};
+        ret = sq2_zero;
+    }
+
+    //return ret;
+
+    if(!ret) return false;
+
+    KDL::Vector k2 = k2p + exp.getAxis() * solutions_pg4[0][0];
+
+    KDL::Vector u = f - exp_pk1.getOrigin();
+    KDL::Vector v = k2 - exp_pk1.getOrigin();
+
+    KDL::Vector u_w = axisPow * u;
+    KDL::Vector v_w = axisPow * v;
+
+    KDL::Vector u_p = u - u_w;
+    KDL::Vector v_p = v - v_w;
+
+    double theta = reference[0];
+
+    if (!KDL::Equal(u_p.Norm(), 0.0) && !KDL::Equal(v_p.Norm(), 0.0))
+    {
+        theta = std::atan2(KDL::dot(exp.getAxis(), u_p * v_p), KDL::dot(u_p, v_p));
+    }
+
+    solutions = {{normalizeAngle(theta)}};
+
+    return KDL::Equal(u_w, v_w) && KDL::Equal(u_p.Norm(), v_p.Norm());
+
+}
+
+// -----------------------------------------------------------------------------

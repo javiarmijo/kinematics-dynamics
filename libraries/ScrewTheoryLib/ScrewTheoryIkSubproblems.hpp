@@ -310,6 +310,44 @@ private:
     const KDL::Rotation axisPow;
 };
 
+/**
+ * @ingroup ScrewTheoryLib
+ *
+ * @brief Third Pardos-Gotor subproblem 2
+ *
+ * Dual solution, single prismatic joint geometric IK subproblem given by
+ * @f$ \left \| e\,^{\hat{\xi}\,{\theta}} \cdot p - k \right \| = \delta @f$
+ * (translation screw for moving @f$ p @f$ to a distance @f$ \delta @f$ from @f$ k @f$,
+ * see @cite pardosgotor2018str @cite pardosgotor2022str).
+ */
+class PardosGotorThree_2 : public ScrewTheoryIkSubproblem
+{
+public:
+    using ScrewTheoryIkSubproblem::solve;
+
+    /**
+     * @brief Constructor
+     *
+     * @param exp POE term.
+     * @param p First characteristic point.
+     * @param k Second characteristic point.
+     */
+    PardosGotorThree_2(const MatrixExponential & exp, const MatrixExponential & exp_pk1, const KDL::Vector & p, const KDL::Vector & k);
+
+    bool solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const override;
+
+    int solutions() const override
+    { return 2; }
+
+    const char * describe() const override
+    { return "PG3_2"; }
+
+private:
+    const MatrixExponential exp, exp_pk1;
+    const KDL::Vector p, k;
+    const KDL::Rotation axisPow;
+};
+
 } // namespace roboticslab
 
 #endif // __SCREW_THEORY_IK_SUBPROBLEMS_HPP__
