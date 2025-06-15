@@ -389,20 +389,20 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
     int unknownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), unknownNotSimplifiedTerm);
     int simplifiedCount = std::count_if(poeTerms.begin(), poeTerms.end(), unknownSimplifiedTerm);
     bool pg5 = false;
-
-
     
     if (unknownsCount == 0 || unknownsCount > 2) // TODO: hardcoded
     {
+        bool algebraic = false;
+        int algebraicId = -1;
         ///*
         if (depth == 1 && simplifiedCount <= 1)
         {
-            std::cout <<"simplifiedCount = " << simplifiedCount << "\n"; 
+            //std::cout <<"simplifiedCount = " << simplifiedCount << "\n"; 
             KDL::Vector point;
             int id;
             MatrixExponential exp_pg3(MatrixExponential::TRANSLATION, KDL::Vector(0, 0, 0));
             MatrixExponential exp_pk1(MatrixExponential::ROTATION, KDL::Vector(0, 0, 0));
-            if (simplifyWithPardosThree(exp_pg3, exp_pk1, point)) 
+            if ((!algebraic) && (simplifyWithPardosThree(exp_pg3, exp_pk1, point))) 
             {
                 auto lastUnknown_pg3 = std::find_if(poeTerms.rbegin(), poeTerms.rend(), unknownNotSimplifiedTerm);
                 int lastExpId_pg3 = std::distance(poeTerms.begin(), lastUnknown_pg3.base()) - 1;
@@ -415,17 +415,47 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 ///*
                 if (simplifiedCount == 1)
                 {
-                    auto lastSimplified = std::find_if(poeTerms.rbegin(), poeTerms.rend(), unknownSimplifiedTerm);
+                    ///*
+                    //auto lastSimplified = std::find_if(poeTerms.rbegin(), poeTerms.rend(), unknownSimplifiedTerm);
                     //int simplifiedId = std::distance(poeTerms.begin(), lastSimplified);
-                    auto itUnknown = std::find_if(poeTerms.begin(), poeTerms.end(), unknownSimplifiedTerm);
-                    int sim = std::distance(poeTerms.begin(), itUnknown);
+
+                    auto itUnknown = std::find_if(poeTerms.begin(), poeTerms.end(), unknownNotSimplifiedTerm);
+                    int un = std::distance(poeTerms.begin(), itUnknown);
+                    //sim = algebraicId;
+
+                    auto itUnknownSimplified = std::find_if(poeTerms.begin(), poeTerms.end(), unknownSimplifiedTerm);
+                    int sim = std::distance(poeTerms.begin(), itUnknownSimplified);
+
                     std::cout <<"simplifiedId = " << sim << "\n"; 
-                    poeTerms[sim].known = true;
+                    //poeTerms[sim].known = true; 
+
+                    std::cout << "sim = " << sim << "     un = " << un << "\n";
+
+                    const MatrixExponential & axis1 = poe.exponentialAtJoint(sim);
+                    const MatrixExponential & axis2 = poe.exponentialAtJoint(un);
+
+                    if (parallelAxes(axis1, axis2))
+                    {
+                        std::cout << "SIIIIIII\n";
+                        //algebraic = true;
+                        poeTerms[sim].known = true;
+                        return {{lastExpId_pg3, sim}, new PardosGotorThree_2(exp_pg3, exp_pk1, testPoints[0], point)};
+                    }
+                    //*/
                 }
                 //*/
                 return {{lastExpId_pg3}, new PardosGotorThree_2(exp_pg3, exp_pk1, testPoints[0], point)};
                 //return {{lastExpId_pg3}, new PardosGotorThree(exp_pk1, testPoints[0], point)};
             }
+            /*
+            else if (algebraic)
+            {
+                std::cout <<"ENTRAMOSSSS \n";
+                poeTerms[algebraicId].known = true; 
+                return {{algebraicId}, new PadenKahanOne(exp_pk1, testPoints[0])};
+                //new Algebraic (steps);
+            }
+            */
             else return {{}, nullptr};
         } 
         else return {{}, nullptr};
@@ -851,7 +881,7 @@ bool ScrewTheoryIkProblemBuilder::simplifyWithPardosThree(MatrixExponential & ex
                 {
                     if(poeTerms[i].known || poeTerms[i].simplified || poeTerms[i+1].known || poeTerms[i+1].simplified)
                     {
-                        std::cout <<"NO NOOOO???  hola??????\n";
+                        //std::cout <<"NO NOOOO???  hola??????\n";
                         return false;
                         //break;
                     }  
@@ -867,7 +897,7 @@ bool ScrewTheoryIkProblemBuilder::simplifyWithPardosThree(MatrixExponential & ex
                 {
                     if(poeTerms[i].known || poeTerms[i].simplified)
                     {
-                        std::cout <<"hola??????\n";
+                        //std::cout <<"hola??????\n";
                         return false;
                     } 
 
