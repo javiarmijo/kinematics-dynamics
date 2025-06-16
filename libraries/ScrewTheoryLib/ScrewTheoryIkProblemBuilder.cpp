@@ -6,6 +6,7 @@
 #include <iterator> // std::advance, std::distance
 #include <set>
 #include <vector>
+#include <iostream>
 
 #include "ScrewTheoryIkSubproblems.hpp"
 
@@ -301,6 +302,11 @@ ScrewTheoryIkProblem::Steps ScrewTheoryIkProblemBuilder::searchSolutions()
         // Find a solution if available.
         if (auto [ids, subproblem] = trySolve(depth); subproblem != nullptr)
         {
+            std::cout << "[SOLUCIÓN ENCONTRADA] Subproblema: " << subproblem->describe() << " en IDs: ";
+            int knownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), knownTerm);
+            for (auto id : ids) std::cout << id << " ";
+            std::cout << std::endl;
+            std::cout << "knownsCount = " << knownsCount << "\n";
             // Solution found, reset and start again. We'll iterate over the same points, taking
             // into account that some terms are already known.
             steps.emplace_back(ids, subproblem);

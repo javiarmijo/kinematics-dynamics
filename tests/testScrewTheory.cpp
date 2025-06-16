@@ -1189,6 +1189,7 @@ TEST_F(ScrewTheoryTest, PardosGotorFour)
 
 TEST_F(ScrewTheoryTest, PardosGotorSix)
 {
+    //Dos ejes que se cruzan normales
     KDL::Vector p(-1, 0, 0);
     KDL::Vector k(2, 1, 2);
 
@@ -1209,12 +1210,14 @@ TEST_F(ScrewTheoryTest, PardosGotorSix)
 
     checkSolutions(actual, expected);
 
+    //Desplaza el punto k del caso anterior a una posición que no es alcanzable
     KDL::Vector k2(2, 2, 2);
     KDL::Frame rhs2(k2 - p);
     ASSERT_FALSE(pg6.solve(rhs2, KDL::Frame::Identity(), actual));
 
     checkSolutions(actual, expected);
 
+    //Desplaza el punto k del caso anterior a una posición que no es alcanzable, aunque los resultados aproximados cambiarán
     KDL::Vector k3(2, 0, 0.25);
     KDL::Frame rhs3(k3 - p);
     ASSERT_FALSE(pg6.solve(rhs3, KDL::Frame::Identity(), actual));
@@ -1223,6 +1226,7 @@ TEST_F(ScrewTheoryTest, PardosGotorSix)
 
     checkSolutions(actual, expected);
 
+    //similar al caso anterior
     KDL::Vector p4(-1, 0, 2);
     KDL::Vector k4(2, 1, -2);
     KDL::Frame rhs4(k4 - p4);
@@ -1230,6 +1234,117 @@ TEST_F(ScrewTheoryTest, PardosGotorSix)
     ASSERT_FALSE(pg6d.solve(rhs4, KDL::Frame::Identity(), actual));
 
     expected = {{-3 * KDL::PI_4, -KDL::PI_2}};
+
+    checkSolutions(actual, expected);
+
+    //si el punto p se encuentra en el eje 2
+    KDL::Vector p5(0, 0, 0);
+    KDL::Vector k5(2, 0, -2);
+    KDL::Frame rhs5(k5 - p5);
+    PardosGotorSix pg6e(exp1, exp2, p5);
+    ASSERT_TRUE(pg6e.solve(rhs5, KDL::Frame::Identity(), actual));
+
+    expected = {{-KDL::PI_2, 0}};
+
+    checkSolutions(actual, expected);
+
+    //si el punto p se encuentra en el eje 2, pero no es alcanzable
+    KDL::Vector p6(0, 0, 0);
+    KDL::Vector k6(2, 0, -1.5);
+    KDL::Frame rhs6(k6 - p6);
+    PardosGotorSix pg6f(exp1, exp2, p6);
+    ASSERT_FALSE(pg6f.solve(rhs6, KDL::Frame::Identity(), actual));
+
+    expected = {{-KDL::PI_2, 0}};
+
+    checkSolutions(actual, expected);
+
+    //si el punto p se encuentra en el eje 2, no es alcanzable y el angulo cambia
+    KDL::Vector p7(0, 0, 0);
+    KDL::Vector k7(5, 0, 0);
+    KDL::Frame rhs7(k7 - p7);
+    PardosGotorSix pg6g(exp1, exp2, p7);
+    ASSERT_FALSE(pg6g.solve(rhs7, KDL::Frame::Identity(), actual));
+
+    expected = {{KDL::PI, 0}};
+
+    checkSolutions(actual, expected);
+
+    //si el punto p se encuentra en el eje 1
+    KDL::Vector p8(0, 2, 0);
+    KDL::Vector k8(2, 0, 0);
+    KDL::Frame rhs8(k8 - p8);
+    PardosGotorSix pg6h(exp1, exp2, p8);
+    ASSERT_TRUE(pg6h.solve(rhs8, KDL::Frame::Identity(), actual));
+
+    expected = {{0, -KDL::PI_2}};
+
+    checkSolutions(actual, expected);
+
+    //si el punto p se encuentra en el eje 2, pero no es alcanzable
+    KDL::Vector p9(0, 2, 0);
+    KDL::Vector k9(3, 0, 0);
+    KDL::Frame rhs9(k9 - p9);
+    PardosGotorSix pg6i(exp1, exp2, p9);
+    ASSERT_FALSE(pg6i.solve(rhs9, KDL::Frame::Identity(), actual));
+
+    expected = {{0, -KDL::PI_2}};
+
+    checkSolutions(actual, expected);
+
+    //si el punto p se encuentra en el eje 2, no es alcanzable y el ángulo cambia
+    KDL::Vector p10(-1, 0, 0);
+    KDL::Vector k10(2, 0, 0);
+    KDL::Frame rhs10(k10 - p10);
+    PardosGotorSix pg6j(exp1, exp2, p10);
+    ASSERT_FALSE(pg6j.solve(rhs10, KDL::Frame::Identity(), actual));
+
+    expected = {{0, KDL::PI}};
+
+    checkSolutions(actual, expected);
+
+    //si p y k están en el mismo punto, que pertenece al eje 2
+    KDL::Vector p11(0, 0, 0);
+    KDL::Vector k11(0, 0, 0);
+    KDL::Frame rhs11(k11 - p11);
+    PardosGotorSix pg6k(exp1, exp2, p11);
+    ASSERT_TRUE(pg6k.solve(rhs11, KDL::Frame::Identity(), actual));
+
+    expected = {{0, 0}};
+
+    checkSolutions(actual, expected);
+
+    //si p y k están en el mismo punto, que pertenece al eje 1
+    KDL::Vector p12(2, 0, 0);
+    KDL::Vector k12(2, 0, 0);
+    KDL::Frame rhs12(k12 - p12);
+    PardosGotorSix pg6l(exp1, exp2, p12);
+    ASSERT_TRUE(pg6l.solve(rhs12, KDL::Frame::Identity(), actual));
+
+    expected = {{0, 0}};
+
+    checkSolutions(actual, expected);
+
+    //si p y k están en el mismo punto, que no pertenece a ningún eje. DABA ERROR, he añadido una condición en el else de pg6.solve
+    //para que no devuelva falso si los puntos p y k son iguales
+    KDL::Vector p13(1, 0, 0);
+    KDL::Vector k13(1, 0, 0);
+    KDL::Frame rhs13(k13 - p13);
+    PardosGotorSix pg6m(exp1, exp2, p13);
+    ASSERT_TRUE(pg6m.solve(rhs13, KDL::Frame::Identity(), actual));
+
+    expected = {{0, 0}};
+
+    checkSolutions(actual, expected);
+
+    //si p y k se encuentran en los ejes 1 y 2
+    KDL::Vector p14(0, 0, 0);
+    KDL::Vector k14(2, 0, 0);
+    KDL::Frame rhs14(k14 - p14);
+    PardosGotorSix pg6n(exp1, exp2, p14);
+    ASSERT_FALSE(pg6n.solve(rhs14, KDL::Frame::Identity(), actual));
+
+    expected = {{0, 0}};
 
     checkSolutions(actual, expected);
 }

@@ -329,7 +329,7 @@ bool PardosGotorSix::solve(const KDL::Frame & rhs, const KDL::Frame & pointTrans
             theta2 = std::atan2(KDL::dot(exp2.getAxis(), u_p * n2_p), KDL::dot(u_p, n2_p));
         }
 
-        ret = false;
+        if(f != k) ret = false;
     }
 
     solutions = {{normalizeAngle(theta1), normalizeAngle(theta2)}};
