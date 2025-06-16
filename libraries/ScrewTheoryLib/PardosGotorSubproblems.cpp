@@ -335,14 +335,33 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     Solutions pg4_c_sols, pg4_d_sols;
     bool pg4_ret_c, pg4_ret_d;
 
-    pg4_ret_c = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), pg4_c_sols);
+    pg4_ret_c = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), reference, pg4_c_sols);
 
-    pg4_ret_d = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), pg4_d_sols);
+    pg4_ret_d = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), reference, pg4_d_sols);
 
     std::cout << "pg4_ret_c = " << pg4_ret_c <<" | pg4_ret_d = " << pg4_ret_d << "\n";
 
     if (pg4_ret_c && pg4_ret_d)
     {
+        /*
+        PadenKahanOne pk1c(exp1, c1);
+        PadenKahanOne pk1d(exp1, d1);
+
+        Solutions pk1_sol_c, pk1_sol_d;
+        bool pk1_ret_c, pk1_ret_d;
+
+        pk1_ret_c = pk1c.solve(KDL::Frame(k - c1), KDL::Frame::Identity(), reference, pk1_sol_c);
+        pk1_ret_d = pk1d.solve(KDL::Frame(k - d1), KDL::Frame::Identity(), reference, pk1_sol_d);
+
+        std::cout << " pk1_ret_d = " << pk1_ret_d << "\n";
+
+        if(!pk1_ret_d && d1!=k) return false;
+        else if(!pk1_ret_c && c1!=k) return false;
+
+        theta_ck = pk1_sol_c[0][0];
+        theta_dk = pk1_sol_d[0][0];
+        */
+        
         std::cout << "no entra no?\n";
         KDL::Vector m1 = c1 - exp1.getOrigin();
         KDL::Vector m1_p = m1 - axisPow1 * m1;
@@ -383,6 +402,19 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     }
     else if (pg4_ret_d)
     {
+        /*
+        PadenKahanOne pk1(exp1, d1);
+
+        Solutions pk1_sol_d;
+        bool pk1_ret_d;
+
+        pk1_ret_d = pk1.solve(KDL::Frame(k - d1), KDL::Frame::Identity(), reference, pk1_sol_d);
+
+        std::cout << " pk1_ret_d = " << pk1_ret_d << "\n";
+
+        if(!pk1_ret_d) return false;
+        */
+        ///*
         KDL::Vector n1 = d1 - exp1.getOrigin();
         KDL::Vector n1_p = n1 - axisPow1 * n1;
 
@@ -391,7 +423,12 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
             theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
             theta_ck = theta_dk;            
         }
+        //*/
 
+        /*
+        theta_dk = pk1_sol_d[0][0];
+        theta_ck = pk1_sol_d[0][0];
+        */
         pg4_c_sols = pg4_d_sols;
     }
     else
