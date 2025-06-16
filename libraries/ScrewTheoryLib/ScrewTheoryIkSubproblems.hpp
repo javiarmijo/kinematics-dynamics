@@ -272,6 +272,45 @@ private:
     const KDL::Rotation axisPow;
 };
 
+/**
+ * @ingroup ScrewTheoryLib
+ *
+ * @brief Sixth Pardos-Gotor subproblem
+ *
+ * Single solution, double revolute joint geometric IK subproblem given by
+ * @f$ e\,^{\hat{\xi_1}\,{\theta_1}} \cdot e\,^{\hat{\xi_2}\,{\theta_2}} \cdot p = k @f$
+ * (consecutive skew rotation screws applied to a point,
+ * see @cite pardosgotor2022str).
+ */
+class PardosGotorSix : public ScrewTheoryIkSubproblem
+{
+public:
+    using ScrewTheoryIkSubproblem::solve;
+    /**
+     * @brief Constructor
+     *
+     * @param exp1 First POE term.
+     * @param exp2 Second POE term.
+     * @param p Characteristic point.
+     */
+    PardosGotorSix(const MatrixExponential & exp1, const MatrixExponential & exp2, const KDL::Vector & p);
+
+    bool solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const override;
+
+    int solutions() const override
+    { return 1; }
+
+    const char * describe() const override
+    { return "PG6"; }
+
+private:
+    const MatrixExponential exp1, exp2;
+    const KDL::Vector p, axesCross;
+    const KDL::Rotation axisPow1, axisPow2;
+    const double axesDot;
+};
+
+
 } // namespace roboticslab
 
 #endif // __SCREW_THEORY_IK_SUBPROBLEMS_HPP__
