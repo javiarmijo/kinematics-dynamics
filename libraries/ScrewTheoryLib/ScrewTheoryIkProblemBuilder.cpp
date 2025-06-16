@@ -447,15 +447,6 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 return {{lastExpId_pg3}, new PardosGotorThree_2(exp_pg3, exp_pk1, testPoints[0], point)};
                 //return {{lastExpId_pg3}, new PardosGotorThree(exp_pk1, testPoints[0], point)};
             }
-            /*
-            else if (algebraic)
-            {
-                std::cout <<"ENTRAMOSSSS \n";
-                poeTerms[algebraicId].known = true; 
-                return {{algebraicId}, new PadenKahanOne(exp_pk1, testPoints[0])};
-                //new Algebraic (steps);
-            }
-            */
             else return {{}, nullptr};
         } 
         else return {{}, nullptr};
@@ -464,7 +455,7 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
 
 
         // Can't solve yet, too many unknowns or oversimplified.
-        return {{}, nullptr};
+       // return {{}, nullptr};
     }
 
     // Find rightmost unknown and not simplified PoE term.
