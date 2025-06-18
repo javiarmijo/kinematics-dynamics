@@ -1337,6 +1337,11 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
         {-KDL::PI_2, KDL::PI, -KDL::PI_2}
     };
 
+    /*
+        {KDL::PI_2, KDL::PI_2},
+        {KDL::PI, -KDL::PI_2}      
+    */
+
     std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
     std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
 
@@ -1455,7 +1460,7 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
 
     checkSolutions(actual, expected);
 
-    //k pertenece al eje 1
+    //k pertenece al eje 1 // c y d estan invertidos POR ESO FALLA
     KDL::Vector p11(0, 1, 0);
     KDL::Vector k11(3, 1, 1);
 

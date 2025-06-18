@@ -278,13 +278,14 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
     KDL::Vector dir = o1 - o2;
 
     std::cout << "dot(axesCross, dir) = " << dot(axesCross, dir) << "\n";
-
+///*
     if (KDL::dot(axesCross, dir) < 0.0)
     {
         std::cout <<"hola\n";
         newAxes = axesCross_inverted;  // invertir si está en sentido opuesto al giro real
     }
-        
+
+     //  */ 
 /**/MatrixExponential exp4(MatrixExponential::TRANSLATION, newAxes/*MAAAAL --- SI PONGO NEW AXES DA SEGFAULT*/);//A VECES COGE SENTIDO CONTRARIO. CORREGIR
     PardosGotorThree pg3_1(exp4, r4, o1);
     //PardosGotorThree pg3_2(exp4, r4, o2);
@@ -301,8 +302,8 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
   //KDL::Vector c2 = r4 - pg3_1_sols[0][0] * exp4.getAxis();
   //KDL::Vector d2 = r4 - pg3_1_sols[1][0] * exp4.getAxis();
 
-/**/KDL::Vector c1 = r4 + pg3_1_sols[0][0] * exp4.getAxis();//EL AXIS A VECES SALE EN SENTIDO CONTRARIO AL ESPERADO Y POR ESO EL ERROR
-    KDL::Vector d1 = r4 + pg3_1_sols[1][0] * exp4.getAxis();
+/**/KDL::Vector c1 = r4 + (pg3_1_sols[0][0] * exp4.getAxis());//EL AXIS A VECES SALE EN SENTIDO CONTRARIO AL ESPERADO Y POR ESO EL ERROR
+    KDL::Vector d1 = r4 + (pg3_1_sols[1][0] * exp4.getAxis());
 
     std::cout << "exp1.getAxis = (" << exp1.getAxis().x() << ", " << exp1.getAxis().y() << ", " << exp1.getAxis().z() << ")\n";
     std::cout << "exp2.getAxis = (" << exp2.getAxis().x() << ", " << exp2.getAxis().y() << ", " << exp2.getAxis().z() << ")\n";
@@ -327,8 +328,8 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     //double theta_ck, theta_dk;
 
-    double theta_dk = reference[0];
-    double theta_ck = reference[1];
+    double theta_ck = reference[0];
+    double theta_dk = reference[1];
 
     PardosGotorFour pg4(exp2, exp3, f);
 
@@ -339,7 +340,32 @@ bool PardosGotorSeven::solve(const KDL::Frame & rhs, const KDL::Frame & pointTra
 
     pg4_ret_d = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), reference, pg4_d_sols);
 
+    if((!pg4_ret_c && !pg4_ret_d) && (KDL::dot(axesCross, dir) == 0.0))
+    {
+        std::cout << "pg3_sol_1 = " << pg3_1_sols[0][0] << "\n";
+        std::cout << "pg3_sol_2 = " << pg3_1_sols[1][0] << "\n";
+
+        pg3_1_sols[0][0] = -pg3_1_sols[0][0];
+        pg3_1_sols[1][0] = -pg3_1_sols[1][0];
+
+        c1 = r4 + (pg3_1_sols[0][0] * exp4.getAxis());//EL AXIS A VECES SALE EN SENTIDO CONTRARIO AL ESPERADO Y POR ESO EL ERROR
+        d1 = r4 + (pg3_1_sols[1][0] * exp4.getAxis());
+
+        std::cout << "pg3_sol_1 = " << pg3_1_sols[0][0] << "\n";
+        std::cout << "pg3_sol_2 = " << pg3_1_sols[1][0] << "\n";
+
+        std::cout << "c1 = (" << c1.x() << ", " << c1.y() << ", " << c1.z() << ")\n";
+        std::cout << "d1 = (" << d1.x() << ", " << d1.y() << ", " << d1.z() << ")\n";
+            
+        std::cout << "pg4_ret_c = " << pg4_ret_c <<" | pg4_ret_d = " << pg4_ret_d << "\n";
+
+        pg4_ret_c = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), reference, pg4_c_sols);
+
+        pg4_ret_d = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), reference, pg4_d_sols);
+    }
+
     std::cout << "pg4_ret_c = " << pg4_ret_c <<" | pg4_ret_d = " << pg4_ret_d << "\n";
+
 
     if (pg4_ret_c && pg4_ret_d)
     {
