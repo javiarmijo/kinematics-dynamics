@@ -1349,6 +1349,295 @@ TEST_F(ScrewTheoryTest, PardosGotorSix)
     checkSolutions(actual, expected);
 }
 
+TEST_F(ScrewTheoryTest, PardosGotorSeven)
+{
+    //dos paralelas y una que se cruza, caso con una única solución, ya que los puntos intermedios de los ejes paralelos son iguales
+    KDL::Vector p(-3, 0, 0);
+    KDL::Vector k(2, 1, 2);
+
+    MatrixExponential exp1(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
+    MatrixExponential exp2(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
+    MatrixExponential exp3(MatrixExponential::ROTATION, {0, 0, 1}, {-2, 0, 0});
+
+    PardosGotorSeven pg7(exp1, exp2, exp3, p);
+    ASSERT_EQ(pg7.solutions(), 4);
+
+    KDL::Frame rhs(k - p);
+    ScrewTheoryIkSubproblem::Solutions actual;
+    ASSERT_TRUE(pg7.solve(rhs, KDL::Frame::Identity(), actual));
+
+    ASSERT_EQ(actual.size(), 4);
+    ASSERT_EQ(actual[0].size(), 3);
+    ASSERT_EQ(actual[1].size(), 3);
+    ASSERT_EQ(actual[2].size(), 3);
+    ASSERT_EQ(actual[3].size(), 3);
+
+    ScrewTheoryIkSubproblem::Solutions expected = {
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //caso anterior pero con posición no alcanzable
+    KDL::Vector p2(-3, 0, 0);
+    KDL::Vector k2(2, 0, 2);
+
+    PardosGotorSeven pg7b(exp1, exp2, exp3, p2);
+
+    KDL::Frame rhs2(k2 - p2);
+
+    ASSERT_FALSE(pg7b.solve(rhs2, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI},
+        {KDL::PI_2, -KDL::PI_2, KDL::PI}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //dos paralelas y una que se cruza, caso con dos soluciones, ya que los puntos intermedios de los ejes paralelos son diferentes
+    KDL::Vector p3(0, 1, 0);
+    KDL::Vector k3(4, 0, 1);
+
+    MatrixExponential exp1_b(MatrixExponential::ROTATION, {0, 0, 1}, {3, 0, 0});
+    MatrixExponential exp2_b(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
+    MatrixExponential exp3_b(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
+    PardosGotorSeven pg7c(exp1_b, exp2_b, exp3_b, p3);
+
+    KDL::Frame rhs3(k3 - p3);
+
+    ASSERT_TRUE(pg7c.solve(rhs3, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2},
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //caso anterior con posición no alcanzable
+    KDL::Vector p4(0, 1, 0);
+    KDL::Vector k4(4, 0, 2);
+
+    PardosGotorSeven pg7d(exp1_b, exp2_b, exp3_b, p3);
+
+    KDL::Frame rhs4(k4 - p4);
+
+    ASSERT_FALSE(pg7d.solve(rhs4, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2},
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //dos paralelas y una que se corta, caso con cuatro soluciones, ya que los puntos intermedios de los ejes paralelos son diferentes
+    KDL::Vector p5(0, 1, 0);
+    KDL::Vector k5(2, 0, 1);
+
+    MatrixExponential exp1_c(MatrixExponential::ROTATION, {0, 0, 1}, {2, 1, 0});
+    MatrixExponential exp2_c(MatrixExponential::ROTATION, {0, 1, 0}, {2, 0, 0});
+    MatrixExponential exp3_c(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
+    PardosGotorSeven pg7e(exp1_c, exp2_c, exp3_c, p5);
+
+    KDL::Frame rhs5(k5 - p5);
+
+    ASSERT_TRUE(pg7e.solve(rhs5, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {KDL::PI_2, 0, KDL::PI_2},
+        {KDL::PI_2, KDL::PI_2, -KDL::PI_2},
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //caso anterior con posición no alcanzable    
+    KDL::Vector p6(0, 1, 0);
+    KDL::Vector k6(2, 0, 2);
+
+    PardosGotorSeven pg7f(exp1_c, exp2_c, exp3_c, p6);
+
+    KDL::Frame rhs6(k6 - p6);
+
+    ASSERT_FALSE(pg7f.solve(rhs6, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {KDL::PI_2, 0, KDL::PI_2},
+        {KDL::PI_2, KDL::PI_2, -KDL::PI_2},
+        {-KDL::PI_2, KDL::PI_2, KDL::PI_2},
+        {-KDL::PI_2, KDL::PI, -KDL::PI_2}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //dos paralelas y una que se corta, caso con dos soluciones, ya que los puntos intermedios de los ejes paralelos son iguales
+    KDL::Vector p7(-3, 0, 0);
+    KDL::Vector k7(0, 1, 0);
+
+    MatrixExponential exp1_d(MatrixExponential::ROTATION, {0, 1, 0}, {0, 0, 0});
+    MatrixExponential exp2_d(MatrixExponential::ROTATION, {0, 0, 1}, {0, 0, 0});
+    MatrixExponential exp3_d(MatrixExponential::ROTATION, {0, 0, 1}, {-2, 0, 0});
+    PardosGotorSeven pg7g(exp1_d, exp2_d, exp3_d, p7);
+
+    KDL::Frame rhs7(k7 - p7);
+
+    ASSERT_TRUE(pg7g.solve(rhs7, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //caso anterior con posición no alcanzable  
+    KDL::Vector p8(-3, 0, 0);
+    KDL::Vector k8(0, 0, 0);
+
+    PardosGotorSeven pg7h(exp1_d, exp2_d, exp3_d, p8);
+
+    KDL::Frame rhs8(k8 - p8);
+
+    ASSERT_FALSE(pg7h.solve(rhs8, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //p pertenece al eje 3  
+    KDL::Vector p9(-2, 0, 0);
+    KDL::Vector k9(2, 2, 2);
+
+    PardosGotorSeven pg7i(exp1, exp2, exp3, p9);
+
+    KDL::Frame rhs9(k9 - p9);
+
+    ASSERT_TRUE(pg7i.solve(rhs9, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {KDL::PI_2, -KDL::PI_2, 0},
+        {KDL::PI_2, -KDL::PI_2, 0},
+        {KDL::PI_2, -KDL::PI_2, 0},
+        {KDL::PI_2, -KDL::PI_2, 0}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //k pertenece al punto final de la rotación entre los paralelos
+    KDL::Vector p10(-3, 0, 0);
+    KDL::Vector k10(0, 1, 0);
+
+    PardosGotorSeven pg7j(exp1, exp2, exp3, p10);
+
+    KDL::Frame rhs10(k10 - p10);
+
+    ASSERT_TRUE(pg7j.solve(rhs10, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI},
+        {0, -KDL::PI_2, KDL::PI}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //k pertenece al eje 1 
+    KDL::Vector p11(0, 1, 0);
+    KDL::Vector k11(3, 1, 1);
+
+    MatrixExponential exp1_e(MatrixExponential::ROTATION, {0, 0, 1}, {3, 1, 0});
+    MatrixExponential exp2_e(MatrixExponential::ROTATION, {0, 1, 0}, {3, 0, 0});
+    MatrixExponential exp3_e(MatrixExponential::ROTATION, {0, 1, 0}, {1, 0, 0});
+    PardosGotorSeven pg7k(exp1_e, exp2_e, exp3_e, p11);
+
+    KDL::Frame rhs11(k11 - p11);
+
+    ASSERT_TRUE(pg7k.solve(rhs11, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, KDL::PI_2, KDL::PI},
+        {0, KDL::PI_2, KDL::PI},
+        {0, KDL::PI_2, KDL::PI},
+        {0, KDL::PI_2, KDL::PI}
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+
+    //p y k son iguales
+    KDL::Vector p12(-3, 0, 0);
+    KDL::Vector k12(-3, 0, 0);
+
+    PardosGotorSeven pg7l(exp1, exp2, exp3, p12);
+
+    KDL::Frame rhs12(k12 - p12);
+
+    ASSERT_TRUE(pg7l.solve(rhs12, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, 0, 0},
+        {0, 0, 0},
+        {0, 0, 0},
+        {0, 0, 0},
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
+}
 
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)
 {

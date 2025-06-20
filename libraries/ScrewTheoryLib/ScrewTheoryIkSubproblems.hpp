@@ -310,6 +310,45 @@ private:
     const double axesDot;
 };
 
+/**
+ * @ingroup ScrewTheoryLib
+ *
+ * @brief Seventh Pardos-Gotor subproblem
+ *
+ * Four triple solutions
+ * 
+ * (three consecutive rotation screws applied to a point, one skew + two parallel,
+ * @cite pardosgotor2022str).
+ */
+class PardosGotorSeven : public ScrewTheoryIkSubproblem
+{
+public:
+    using ScrewTheoryIkSubproblem::solve;
+
+    /**
+     * @brief Constructor
+     *
+     * @param exp1 First POE term.
+     * @param exp2 Second POE term.
+     * @param exp3 Third POE term.
+     * @param p Characteristic point.
+     */
+    PardosGotorSeven(const MatrixExponential & exp1, const MatrixExponential & exp2, const MatrixExponential & exp3, const KDL::Vector & p);
+
+    bool solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const override;
+
+    int solutions() const override
+    { return 4; }
+
+    const char * describe() const override
+    { return "PG7"; }
+
+private:
+    const MatrixExponential exp1, exp2, exp3;
+    const KDL::Vector p, n, axesCross, axesCross_inverted;
+    const KDL::Rotation axisPow1, axisPow2;
+    const double axesDot;
+};
 
 } // namespace roboticslab
 

@@ -338,3 +338,122 @@ bool PardosGotorSix::solve(const KDL::Frame & rhs, const KDL::Frame & pointTrans
 }
 
 // -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+
+PardosGotorSeven::PardosGotorSeven(const MatrixExponential & _exp1, const MatrixExponential & _exp2, const MatrixExponential & _exp3, const KDL::Vector & _p)
+    : exp1(_exp1),
+      exp2(_exp2),
+      exp3(_exp3),
+      p(_p),
+      n(computeNormal(exp1, exp2)),
+      axisPow1(vectorPow2(exp1.getAxis())),
+      axisPow2(vectorPow2(exp2.getAxis())),
+      axesCross(exp1.getAxis() * exp2.getAxis()),
+      axesCross_inverted(exp2.getAxis() * exp1.getAxis()),
+      axesDot(KDL::dot(exp1.getAxis(), exp2.getAxis()))
+{}
+
+// -----------------------------------------------------------------------------
+
+bool PardosGotorSeven::solve(const KDL::Frame &rhs, const KDL::Frame &pointTransform, const JointConfig &reference, Solutions &solutions) const {
+    
+    KDL::Vector f = pointTransform * p;
+    KDL::Vector k = rhs * p;
+    KDL::Vector u = f - exp3.getOrigin();
+    KDL::Vector v = k - exp1.getOrigin();
+
+    KDL::Vector u_p2 = u - axisPow2 * u;
+    KDL::Vector v_p1 = v - axisPow1 * v;
+
+    KDL::Vector o2 = exp2.getOrigin() + axisPow2 * (f - exp2.getOrigin());
+    KDL::Vector o1 = exp1.getOrigin() + axisPow1 * v;
+
+    double o2_dot = KDL::dot(exp2.getAxis(), o2);
+    double o1_dot = KDL::dot(exp1.getAxis(), o1);
+
+    KDL::Vector r4 = (exp1.getAxis() * (o1_dot - o2_dot * axesDot) + exp2.getAxis() * (o2_dot - o1_dot * axesDot)) / (1 - axesDot);
+    KDL::Vector newAxes = KDL::dot(axesCross, o1 - o2) < 0.0 ? axesCross_inverted : axesCross;
+
+    MatrixExponential exp4(MatrixExponential::TRANSLATION, newAxes);
+    PardosGotorThree pg3_1(exp4, r4, o1);
+
+    Solutions pg3_1_sols;
+    if (!pg3_1.solve(KDL::Frame(v_p1 - (r4 - o1)), KDL::Frame::Identity(), pg3_1_sols)) return false;
+
+    KDL::Vector c1 = r4 + (pg3_1_sols[0][0] * exp4.getAxis());
+    KDL::Vector d1 = r4 + (pg3_1_sols[1][0] * exp4.getAxis());
+
+    double theta_ck = reference[0], theta_dk = reference[1];
+    PardosGotorFour pg4(exp2, exp3, f);
+
+    Solutions pg4_c_sols, pg4_d_sols;
+    bool pg4_ret_c = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), reference, pg4_c_sols);
+    bool pg4_ret_d = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), reference, pg4_d_sols);
+
+    if ((!pg4_ret_c && !pg4_ret_d) && (KDL::dot(axesCross, o1 - o2) == 0.0))
+    {
+        c1 = r4 + (-pg3_1_sols[0][0] * exp4.getAxis());
+        d1 = r4 + (-pg3_1_sols[1][0] * exp4.getAxis());
+
+        pg4_ret_c = pg4.solve(KDL::Frame(c1 - f), KDL::Frame::Identity(), reference, pg4_c_sols);
+        pg4_ret_d = pg4.solve(KDL::Frame(d1 - f), KDL::Frame::Identity(), reference, pg4_d_sols);
+    }
+
+    if (pg4_ret_c && pg4_ret_d)
+    {
+        KDL::Vector m1 = c1 - exp1.getOrigin();
+        KDL::Vector m1_p = m1 - axisPow1 * m1;
+
+        KDL::Vector n1 = d1 - exp1.getOrigin();
+        KDL::Vector n1_p = n1 - axisPow1 * n1;
+
+        if (!KDL::Equal(v_p1.Norm(), 0.0))
+        {
+            theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
+            theta_ck = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));            
+        }
+    }
+    else if (pg4_ret_c)
+    {
+        KDL::Vector m1 = c1 - exp1.getOrigin();
+        KDL::Vector m1_p = m1 - axisPow1 * m1;
+
+        if (!KDL::Equal(v_p1.Norm(), 0.0))
+        {
+            theta_ck = std::atan2(KDL::dot(exp1.getAxis(), m1_p * v_p1), KDL::dot(m1_p, v_p1));
+            theta_dk = theta_ck;            
+        }
+
+        pg4_d_sols = pg4_c_sols;
+    }
+    else if (pg4_ret_d)
+    {
+        KDL::Vector n1 = d1 - exp1.getOrigin();
+        KDL::Vector n1_p = n1 - axisPow1 * n1;
+
+        if (!KDL::Equal(v_p1.Norm(), 0.0))
+        {
+            theta_dk = std::atan2(KDL::dot(exp1.getAxis(), n1_p * v_p1), KDL::dot(n1_p, v_p1));
+            theta_ck = theta_dk;            
+        }
+
+        pg4_c_sols = pg4_d_sols;
+    }
+    else
+    {
+        return false;
+    } 
+
+    solutions = {
+        {theta_ck, pg4_c_sols[0][0], pg4_c_sols[0][1]},
+        {theta_ck, pg4_c_sols[1][0], pg4_c_sols[1][1]},
+        {theta_dk, pg4_d_sols[0][0], pg4_d_sols[0][1]},
+        {theta_dk, pg4_d_sols[1][0], pg4_d_sols[1][1]}
+    };
+
+    return true;
+}
+
+
+// -----------------------------------------------------------------------------
