@@ -1460,7 +1460,7 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
 
     checkSolutions(actual, expected);
 
-    //k pertenece al eje 1 // c y d estan invertidos POR ESO FALLA
+    //k pertenece al eje 1 
     KDL::Vector p11(0, 1, 0);
     KDL::Vector k11(3, 1, 1);
 
@@ -1484,7 +1484,28 @@ TEST_F(ScrewTheoryTest, PardosGotorSeven)
     std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
 
     checkSolutions(actual, expected);
-    
+
+    //p y k son iguales
+    KDL::Vector p12(-3, 0, 0);
+    KDL::Vector k12(-3, 0, 0);
+
+    PardosGotorSeven pg7l(exp1, exp2, exp3, p12);
+
+    KDL::Frame rhs12(k12 - p12);
+
+    ASSERT_TRUE(pg7l.solve(rhs12, KDL::Frame::Identity(), actual));
+
+    expected = {
+        {0, 0, 0},
+        {0, 0, 0},
+        {0, 0, 0},
+        {0, 0, 0},
+    };
+
+    std::cout << "expected 1 = " << expected[0][0] << " " << expected[0][1] << " " << expected[0][2] << " | " << "expected 2 = " << expected[1][0] << " " << expected[1][1] << " " << expected[1][2] << " | " << "expected 3 = " << expected[2][0] << " " << expected[2][1] << " " << expected[2][2]  << " | " << "expected 4 = " << expected[3][0] << " " << expected[3][1] << " " << expected[3][2] << "  \n";
+    std::cout << " actual 1  = " << actual[0][0] << " " << actual[0][1] << " " << actual[0][2] << " | " << "actual 2 = " << actual[1][0] << " " << actual[1][1] << " " << actual[1][2] << " | " << "actual 3 = " << actual[2][0] << " " << actual[2][1] << " " << actual[2][2]  << " | " << "actual 4 = " << actual[3][0] << " " << actual[3][1] << " " << actual[3][2] << "  \n";
+
+    checkSolutions(actual, expected);
 }
 
 TEST_F(ScrewTheoryTest, AbbIrb120Kinematics)
