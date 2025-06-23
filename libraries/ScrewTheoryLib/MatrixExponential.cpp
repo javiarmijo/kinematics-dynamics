@@ -2,7 +2,7 @@
 
 #include "MatrixExponential.hpp"
 
-#include <yarp/os/LogStream.h>
+#include <iostream>
 
 #include "LogComponent.hpp"
 #include "ScrewTheoryTools.hpp"
@@ -47,7 +47,7 @@ KDL::Frame MatrixExponential::asFrame(double theta) const
         H.p = axis * theta;
         break;
     default:
-        yCWarning(ST) << "Unrecognized motion type:" << motionType;
+        std::cout << "Unrecognized motion type:" << motionType << std::endl;
     }
 
     return H;

@@ -7,7 +7,7 @@
 #include <kdl/joint.hpp>
 #include <kdl/segment.hpp>
 
-#include <yarp/os/Log.h>
+#include <iostream>
 
 #include "LogComponent.hpp"
 
@@ -83,7 +83,7 @@ bool PoeExpression::evaluate(const KDL::JntArray & q, KDL::Frame & H) const
 {
     if (exps.size() != q.rows())
     {
-        yCWarning(ST, "Size mismatch: %zu (terms of PoE) != %d (joint array)", exps.size(), q.rows());
+        std::cout << "Size mismatch: " << exps.size() << " (terms of PoE) != " << q.rows() << " (joint array)" << std::endl;
         return false;
     }
 
