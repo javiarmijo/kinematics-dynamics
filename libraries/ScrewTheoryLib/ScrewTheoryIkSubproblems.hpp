@@ -343,7 +343,7 @@ public:
     { return "PG3_2"; }
 
 private:
-    const MatrixExponential exp, exp_pk1;
+    const MatrixExponential exp_pg3, exp_pk1;
     const KDL::Vector p, k;
     const KDL::Rotation axisPow;
 };
