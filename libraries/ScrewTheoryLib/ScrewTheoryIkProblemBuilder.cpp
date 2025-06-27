@@ -386,76 +386,51 @@ void ScrewTheoryIkProblemBuilder::refreshSimplificationState()
 
 ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve(int depth)
 {
+    int knownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), knownTerm);
     int unknownsCount = std::count_if(poeTerms.begin(), poeTerms.end(), unknownNotSimplifiedTerm);
     int simplifiedCount = std::count_if(poeTerms.begin(), poeTerms.end(), unknownSimplifiedTerm);
     bool pg5 = false;
     
     if (unknownsCount == 0 || unknownsCount > 2) // TODO: hardcoded
     {
-        bool algebraic = false;
-        int algebraicId = -1;
-        ///*
         if (depth == 1 && simplifiedCount <= 1)
         {
-            //std::cout <<"simplifiedCount = " << simplifiedCount << "\n"; 
             KDL::Vector point;
-            int id;
             MatrixExponential exp_pg3(MatrixExponential::TRANSLATION, KDL::Vector(0, 0, 0));
             MatrixExponential exp_pk1(MatrixExponential::ROTATION, KDL::Vector(0, 0, 0));
-            if ((!algebraic) && (simplifyWithPardosThree(exp_pg3, exp_pk1, point))) 
+
+            if (simplifyWithPardosThree(exp_pg3, exp_pk1, point)) 
             {
                 auto lastUnknown_pg3 = std::find_if(poeTerms.rbegin(), poeTerms.rend(), unknownNotSimplifiedTerm);
                 int lastExpId_pg3 = std::distance(poeTerms.begin(), lastUnknown_pg3.base()) - 1;
                 const MatrixExponential & lastExp_pg3 = poe.exponentialAtJoint(lastExpId_pg3);
-                //std::cout << "lastExpId = " << lastExpId <<"\n";
+                
                 poeTerms[lastExpId_pg3].known = true;
-                std::cout <<"id = " << id << "\n"; 
-                //int simplifiedCount = std::count_if(poeTerms.begin(), poeTerms.end(), notKnownSimplifiedTerm);
-                std::cout <<"simplifiedCount = " << simplifiedCount << "\n"; 
-                ///*
-                if (simplifiedCount == 1)
-                {
-                    ///*
-                    //auto lastSimplified = std::find_if(poeTerms.rbegin(), poeTerms.rend(), unknownSimplifiedTerm);
-                    //int simplifiedId = std::distance(poeTerms.begin(), lastSimplified);
-
-                    auto itUnknown = std::find_if(poeTerms.begin(), poeTerms.end(), unknownNotSimplifiedTerm);
-                    int un = std::distance(poeTerms.begin(), itUnknown);
-                    //sim = algebraicId;
-
-                    auto itUnknownSimplified = std::find_if(poeTerms.begin(), poeTerms.end(), unknownSimplifiedTerm);
-                    int sim = std::distance(poeTerms.begin(), itUnknownSimplified);
-
-                    std::cout <<"simplifiedId = " << sim << "\n"; 
-                    //poeTerms[sim].known = true; 
-
-                    std::cout << "sim = " << sim << "     un = " << un << "\n";
-
-                    const MatrixExponential & axis1 = poe.exponentialAtJoint(sim);
-                    const MatrixExponential & axis2 = poe.exponentialAtJoint(un);
-
-                    if (parallelAxes(axis1, axis2))
-                    {
-                        std::cout << "SIIIIIII\n";
-                        //algebraic = true;
-                        poeTerms[sim].known = true;
-                        return {{lastExpId_pg3, sim}, new PardosGotorThree_2(exp_pg3, exp_pk1, testPoints[0], point)};
-                    }
-                    //*/
-                }
-                //*/
                 return {{lastExpId_pg3}, new PardosGotorThree_2(exp_pg3, exp_pk1, testPoints[0], point)};
-                //return {{lastExpId_pg3}, new PardosGotorThree(exp_pk1, testPoints[0], point)};
+            }
+            else if (knownsCount == 2)
+            {
+                auto itUnknown = std::find_if(poeTerms.begin(), poeTerms.end(), unknownTerm);
+                int un = std::distance(poeTerms.begin(), itUnknown);
+                int last = std::distance(poeTerms.begin(), poeTerms.end()-1);
+
+                auto itknown1 = std::find_if(poeTerms.begin(), poeTerms.end(), knownTerm);
+                int q1 = std::distance(poeTerms.begin(), itknown1);
+                auto itknown2 = std::find_if(itknown1 + 1, poeTerms.end(), knownTerm);
+                int q2 = std::distance(poeTerms.begin(), itknown2);
+
+                const MatrixExponential & sim_axis = poe.exponentialAtJoint(un);
+                const MatrixExponential & last_axis = poe.exponentialAtJoint(last);
+
+                if (parallelAxes(sim_axis, last_axis))
+                {
+                poeTerms[last].known = true;
+                return {{last}, new Algebraic_UR(q1, q2)};
+                }
             }
             else return {{}, nullptr};
         } 
-        else return {{}, nullptr};
-         //*/
-
-
-
-        // Can't solve yet, too many unknowns or oversimplified.
-       // return {{}, nullptr};
+        else return {{}, nullptr};  // Can't solve yet, too many unknowns or oversimplified.
     }
 
     // Find rightmost unknown and not simplified PoE term.
