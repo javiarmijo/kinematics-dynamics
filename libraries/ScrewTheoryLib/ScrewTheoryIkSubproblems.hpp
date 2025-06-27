@@ -348,6 +348,42 @@ private:
     const KDL::Rotation axisPow;
 };
 
+/**
+ * @ingroup ScrewTheoryLib
+ *
+ * @brief Algebraic approach
+ *
+ * Single solution
+ * 
+ * 
+ * 
+ */
+class Algebraic_UR : public ScrewTheoryIkSubproblem
+{
+public:
+    using ScrewTheoryIkSubproblem::solve;
+
+    /**
+     * @brief Constructor
+     *
+     * @param q1 Solution for the first joint.
+     * @param q2  Solution for the second joint.
+     * 
+     */
+    Algebraic_UR(const int & q1, const int & q2);
+
+    bool solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions) const override;
+
+    int solutions() const override
+    { return 1; }
+
+    const char * describe() const override
+    { return "AA"; }
+
+private:
+    const int q1, q2;
+};
+
 } // namespace roboticslab
 
 #endif // __SCREW_THEORY_IK_SUBPROBLEMS_HPP__

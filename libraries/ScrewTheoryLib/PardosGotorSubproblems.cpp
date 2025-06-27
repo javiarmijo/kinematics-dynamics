@@ -356,3 +356,26 @@ bool PardosGotorThree_2::solve(const KDL::Frame & rhs, const KDL::Frame & pointT
 }
 
 // -----------------------------------------------------------------------------
+
+Algebraic_UR::Algebraic_UR(const int & _q1, const int & _q2) //RECIBE ENTEROS CON LAS POSICIONES DE LAS ARTICULACIONES RESUELTAS
+    : q1(_q1),
+      q2(_q2)
+{}
+
+// -----------------------------------------------------------------------------
+
+bool Algebraic_UR::solve(const KDL::Frame & rhs, const KDL::Frame & pointTransform, const JointConfig & reference, Solutions & solutions, KDL::Frame & H_S_T_0, Solutions & c_solutions) const
+{   
+    //TIENE QUE RECIBIR SOLUTIONS Y H_S_T_0
+
+    double nx = H_S_T_0.M(0, 0);
+    double ny = H_S_T_0.M(1, 0);
+    double ox = H_S_T_0(0, 1); 
+    double oy = H_S_T_0(1, 1);
+
+    double theta = atan2((ox * sin(c_solutions[0][q1]) - oy * cos(c_solutions[0][q1])) / sin(c_solutions[0][q2]) ,(ny * cos(c_solutions[0][q1]) - nx * sin(c_solutions[0][q1]) / sin(c_solutions[0][q2])));
+
+     solutions = {{normalizeAngle(theta)}};
+
+     return true; //???????????
+}

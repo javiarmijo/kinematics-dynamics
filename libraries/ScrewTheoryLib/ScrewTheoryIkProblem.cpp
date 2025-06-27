@@ -91,6 +91,9 @@ std::vector<bool> ScrewTheoryIkProblem::solve(const KDL::Frame & H_S_T, const KD
     solutions.reserve(soln);
 
     // Insert a dummy value to avoid accessing an empty vector.
+
+    KDL::Frame H_S_T_0 = poe.getTransform(); //me coge realmente H_S_T_0???
+
     solutions.emplace_back(poe.size());
     rhsFrames.emplace_back((reversed ? H_S_T.Inverse() : H_S_T) * poe.getTransform().Inverse());
     reachability.emplace_back(true);
