@@ -425,7 +425,8 @@ ScrewTheoryIkProblem::JointIdsToSubproblem ScrewTheoryIkProblemBuilder::trySolve
                 if (parallelAxes(sim_axis, last_axis))
                 {
                 poeTerms[last].known = true;
-                return {{last}, new Algebraic_UR(q1, q2)};
+                //return {{last}, new Algebraic_UR(q1, q2)};
+                return {{last}, new PadenKahanOne(last_axis, testPoints[0])}; //cambiar es para que ccompile, de momento
                 }
             }
             else return {{}, nullptr};
